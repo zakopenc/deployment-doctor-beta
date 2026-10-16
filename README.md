@@ -8,6 +8,16 @@ Read-only PowerShell diagnostics for Windows Autopilot / Autopilot device prepar
 
 Join the Deployment Doctor waitlist: https://zakitpro.com/doctor/
 
+## Versions
+| Script file | Script version | Matching paid kit version | Last updated |
+|---|---|---|---|
+| `kit1/scripts/Invoke-TenantPreCheck.ps1` | 1.3.2 | Kit 1 v1.4.2 | 2026-10-16 |
+| `kit1/scripts/Invoke-DeviceDiagnostic.ps1` | 1.3.2 | Kit 1 v1.4.2 | 2026-10-16 |
+| `kit2/scripts/Invoke-TenantPreCheck.ps1` | 1.2.2 | Kit 2 v1.3.2 | 2026-10-16 |
+| `kit2/scripts/Invoke-DeviceDiagnostic.ps1` | 1.2.2 | Kit 2 v1.3.2 | 2026-10-16 |
+
+Script versions are numbered separately from kit (guide) versions: a kit version changes whenever the guide or extras change, while a script version changes only when that script's code changes, so the scripts here are byte-identical to the ones in the matching paid kit. See [CHANGELOG.md](CHANGELOG.md).
+
 ## How this differs from Pre-Check Lite
 The free [Pre-Check Lite](https://zakitpro.com/doctor/) is one script that runs 3 read-only Device Prep tenant checks (service principal, device group, local admin) and prints PASS/FAIL/WARN/SKIP lines. This beta is the full script set from both kits: 2 tenant pre-checks and 2 on-device diagnostics, with HTML/JSON reports.
 
