@@ -21,6 +21,11 @@ BeforeAll {
         $Html | Should -Match 'id="zk-theme"'
         $Html | Should -Match '@media print'
         $Html | Should -Match 'Health score = round'
+        $Html | Should -Match 'white-space:nowrap;word-break:keep-all'
+        $Html | Should -Match '#zk-findings td:nth-child\(2\)\{min-width:96px'
+        $Html | Should -Match 'id="zk-legend">Weighting: Passed = 1, Warning = 0.5, Critical = 0'
+        $Html.IndexOf('id="zk-legend"') | Should -BeLessThan $Html.IndexOf('<h2>Findings</h2>')
+        $Html | Should -Match 'class="card scorecard" title="Weighting:'
         $Html | Should -Match '<details><summary>Show evidence</summary>'
         $Html | Should -Match 'class="print-ev"'
         $noJs = [regex]::Replace($Html, '(?s)<script>.*?</script>', '')
@@ -74,6 +79,16 @@ Describe 'Kit 2 tenant HTML report' {
     It 'has filters, theme toggle, print CSS and renders without JS' { Test-ZkDashboard -Html $script:H }
     It 'renders red, yellow and green statuses' {
         foreach ($s in 'red', 'yellow', 'green') { $script:H | Should -Match "data-status=`"$s`"" }
+    }
+    It 'flags and caps the score when a Critical finding exists' {
+        $script:H | Should -Match 'class="ring red"[^>]*data-capped="true">49<'
+        $script:H | Should -Match 'Critical issues present \(score capped at 49; uncapped 50\)'
+    }
+    It 'does not cap or flag the score without Critical findings' {
+        $rows = @([pscustomobject]@{ Status = 'Medium'; Scope = 'Contoso'; Check = 'T01'; Finding = 'x'; Evidence = 'y'; NextHtml = '' }, [pscustomobject]@{ Status = 'Pass'; Scope = 'Fabrikam'; Check = 'All'; Finding = 'ok'; Evidence = ''; NextHtml = '' })
+        $h = ConvertTo-ZkDashboardHtml -Title 'T' -Subtitle 'S' -Finding $rows
+        $h | Should -Not -Match 'Critical issues present'
+        $h | Should -Match 'class="ring yellow"[^>]*data-capped="false">75<'
     }
     It 'has a what-to-do-next entry per finding' { ([regex]::Matches($script:H, 'class="next"')).Count | Should -BeGreaterOrEqual 3 }
     It 'HTML-escapes evidence' {

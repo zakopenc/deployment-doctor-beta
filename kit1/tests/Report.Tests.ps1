@@ -20,6 +20,11 @@ BeforeAll {
         $Html | Should -Match 'id="zk-theme"'
         $Html | Should -Match '@media print'
         $Html | Should -Match 'Health score = round'
+        $Html | Should -Match 'white-space:nowrap;word-break:keep-all'
+        $Html | Should -Match '#zk-findings td:nth-child\(2\)\{min-width:96px'
+        $Html | Should -Match 'id="zk-legend">Weighting: Passed = 1, Warning = 0.5, Critical = 0'
+        $Html.IndexOf('id="zk-legend"') | Should -BeLessThan $Html.IndexOf('<h2>Findings</h2>')
+        $Html | Should -Match 'class="card scorecard" title="Weighting:'
         $Html | Should -Match '<details><summary>Show evidence</summary>'
         $Html | Should -Match 'class="print-ev"'
         $noJs = [regex]::Replace($Html, '(?s)<script>.*?</script>', '')

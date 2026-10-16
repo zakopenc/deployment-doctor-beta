@@ -549,7 +549,12 @@ function ConvertTo-ZkDashboardHtml {
     if (@($Finding).Count -eq 0) { [void]$rows.Append('<tr><td colspan="7" class="muted">No checks produced output.</td></tr>') }
     $scored = $count.red + $count.yellow + $count.green
     $score = if ($scored -gt 0) { [int][Math]::Round(100 * ($count.green + 0.5 * $count.yellow) / $scored) } else { 100 }
-    $scoreClass = if ($score -ge 85) { 'green' } elseif ($score -ge 60) { 'yellow' } else { 'red' }
+    $rawScore = $score
+    $capped = $false
+    if ($count.red -gt 0 -and $score -gt 49) { $score = 49; $capped = $true }
+    $scoreClass = if ($count.red -gt 0) { 'red' } elseif ($score -ge 85) { 'green' } elseif ($score -ge 60) { 'yellow' } else { 'red' }
+    $legend = 'Weighting: Passed = 1, Warning = 0.5, Critical = 0; Info and not-checked rows are not scored. Any Critical finding caps the score at 49 and turns the ring red.'
+    $scoreNote = if ($count.red -gt 0) { '<div class="crit" role="alert">Critical issues present' + $(if ($capped) { ' (score capped at 49; uncapped ' + $rawScore + ')' } else { '' }) + '</div>' } else { '<div class="muted">out of 100</div>' }
     $stOptions = ($statuses | Sort-Object | ForEach-Object { '<option value="' + (& $enc $_) + '">' + (& $enc $_) + '</option>' }) -join ''
     $css = @'
 :root{--bg:#ffffff;--surface:#eef6ff;--card:#ffffff;--text:#060f30;--muted:#4b5563;--secondary:#263d76;--border:#dbe3f0;--link:#0369a1;--btn:#0369a1;--btn-text:#ffffff;
@@ -570,7 +575,9 @@ function ConvertTo-ZkDashboardHtml {
 button.tg{font:inherit;cursor:pointer;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:9999px;padding:6px 14px}
 .tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--card)}table{border-collapse:collapse;width:100%}th{background:var(--head);color:var(--head-text);text-align:left;padding:9px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0}
 td{padding:9px 10px;border-top:1px solid var(--border);vertical-align:top;word-break:break-word}tbody tr:hover{background:var(--surface)}
-.st{display:inline-block;border-radius:9999px;padding:2px 10px;font-size:12px;font-weight:700;white-space:nowrap}.st-red{background:var(--red-bg);color:var(--red-fg)}.st-yellow{background:var(--yellow-bg);color:var(--yellow-fg)}.st-green{background:var(--green-bg);color:var(--green-fg)}.st-grey{background:var(--grey-bg);color:var(--grey-fg)}
+.st{display:inline-block;border-radius:9999px;padding:2px 10px;font-size:12px;font-weight:700;white-space:nowrap;word-break:keep-all}
+#zk-findings th:nth-child(1),#zk-findings td:nth-child(1){min-width:104px;white-space:nowrap}#zk-findings th:nth-child(2),#zk-findings td:nth-child(2){min-width:96px;white-space:nowrap;word-break:keep-all}
+.crit{display:inline-block;margin-top:4px;background:var(--red-bg);color:var(--red-fg);font-weight:700;font-size:12px;border-radius:9999px;padding:2px 10px}.legend{font-size:12px;color:var(--muted);margin-top:6px;max-width:260px}.card.scorecard{grid-column:span 2}.st-red{background:var(--red-bg);color:var(--red-fg)}.st-yellow{background:var(--yellow-bg);color:var(--yellow-fg)}.st-green{background:var(--green-bg);color:var(--green-fg)}.st-grey{background:var(--grey-bg);color:var(--grey-fg)}
 details summary{cursor:pointer;color:var(--link);font-weight:600}pre{white-space:pre-wrap;word-break:break-word;margin:6px 0 0;font:12px/1.5 ui-monospace,"Cascadia Mono",Consolas,monospace;background:var(--surface);padding:8px;border-radius:6px}.print-ev{display:none}
 a{color:var(--link)}a.next{display:inline-block;background:var(--btn);color:var(--btn-text);text-decoration:none;font-weight:700;border-radius:8px;padding:6px 12px;white-space:nowrap}a.next:focus,button.tg:focus,.filters input:focus,.filters select:focus{outline:3px solid #47c0f8;outline-offset:2px}
 .next-code{display:inline-block;border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-weight:700;white-space:nowrap}code{font-family:ui-monospace,Consolas,monospace;background:var(--surface);padding:1px 4px;border-radius:4px}
@@ -598,7 +605,7 @@ window.addEventListener("beforeprint",function(){for(var i=0;i<rows.length;i++){
     [void]$sb.Append('<header class="top"><div><div class="brand">ZakitPro Deployment Doctor</div><h1>' + (& $enc $Title) + '</h1><div class="meta">' + (& $enc $Subtitle) + '</div></div>')
     [void]$sb.Append('<button type="button" id="zk-theme" class="tg hidden-js" aria-label="Toggle dark or light theme">Toggle theme</button></header>')
     [void]$sb.Append('<div class="banner"><b>Read-only, local report.</b> Not tested against a live tenant. Test in non-production first. This file makes no network requests.</div>')
-    [void]$sb.Append('<section class="grid" aria-label="Summary"><div class="card"><div class="score"><div class="ring ' + $scoreClass + '" aria-label="Health score">' + $score + '</div><div><div class="k">Health score</div><div class="muted">out of 100</div></div></div></div>')
+    [void]$sb.Append('<section class="grid" aria-label="Summary"><div class="card scorecard" title="' + (& $enc $legend) + '"><div class="score"><div class="ring ' + $scoreClass + '" aria-label="Health score ' + $score + ' out of 100" data-capped="' + $(if ($capped) { 'true' } else { 'false' }) + '">' + $score + '</div><div><div class="k">Health score</div>' + $scoreNote + '</div></div><div class="legend" id="zk-legend">' + (& $enc $legend) + '</div></div>')
     foreach ($k in 'red', 'yellow', 'green', 'grey') { [void]$sb.Append('<div class="card ' + $k + '"><div class="k">' + $label[$k] + '</div><div class="v">' + $count[$k] + '</div></div>') }
     [void]$sb.Append('</section><h2>Findings</h2>')
     [void]$sb.Append('<div id="zk-filters" class="filters hidden-js" role="search"><label>Search<input id="zk-q" type="search" placeholder="Filter by any text"></label>')
@@ -608,7 +615,7 @@ window.addEventListener("beforeprint",function(){for(var i=0;i<rows.length;i++){
     [void]$sb.Append($rows.ToString())
     [void]$sb.Append('</tbody></table></div>')
     [void]$sb.Append($ExtraHtml)
-    [void]$sb.Append('<footer>Health score = round(100 x (Passed + 0.5 x Warning) / (Passed + Warning + Critical)); Info and not-checked rows are excluded, and the score is 100 when nothing was scored. It summarises this run only and is not a security rating. Generated locally by a read-only script; no data leaves this file.</footer>')
+    [void]$sb.Append('<footer>Health score = round(100 x (Passed + 0.5 x Warning) / (Passed + Warning + Critical)); Info and not-checked rows are excluded, and the score is 100 when nothing was scored. If any Critical finding exists, the score is capped at 49 and shown in red. It summarises this run only and is not a security rating. Generated locally by a read-only script; no data leaves this file.</footer>')
     [void]$sb.Append('</div><script>' + $js + '</script></body></html>')
     $sb.ToString()
 }

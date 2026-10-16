@@ -62,7 +62,7 @@ The `known-causes.json` files are trimmed signal maps: cause IDs, match signals/
 
 ## Local HTML report
 Each script writes one self-contained HTML dashboard next to its JSON report. It uses inline CSS and inline vanilla JavaScript only, with no external files, CDNs, web fonts or telemetry. A Content-Security-Policy meta tag blocks network requests from the page.
-- **Summary header:** a health score, plus status cards with counts (Critical, Warning, Passed, Info). The formula is printed in the report footer: `round(100 x (Passed + 0.5 x Warning) / (Passed + Warning + Critical))`. Info and not-checked rows are excluded.
+- **Summary header:** a health score, plus status cards with counts (Critical, Warning, Passed, Info). A legend under the score (also shown as a tooltip and in the footer) explains the weighting: Passed = 1, Warning = 0.5, Critical = 0, and Info and not-checked rows are not scored. Score = `round(100 x (Passed + 0.5 x Warning) / (Passed + Warning + Critical))`. If any Critical finding exists, the score is capped at 49, the ring turns red and a "Critical issues present" label appears.
 - **Findings table:** severity pills (each with a text label), the raw status, scope, check and finding. Evidence is HTML-escaped and collapsible (`<details>`). A **Next step** button links to Microsoft Learn; when no Learn page exists, the cell shows the KC/check code instead.
 - **Filters:** filter by severity and by status, and search by text. With JavaScript disabled, the filters stay hidden and the full table is shown.
 - **Themes:** light and dark, following `prefers-color-scheme`, plus a toggle button. Colours come from the ZakitPro design system, with accessible contrast. Text uses the system font stack.
