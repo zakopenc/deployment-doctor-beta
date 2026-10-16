@@ -58,7 +58,7 @@
 
 .NOTES
     Name:         Invoke-TenantPreCheck.ps1
-    Version:      1.3.1 (2026-10-16)
+    Version:      1.3.2 (2026-10-16)
     Publisher:    ZakitPro - Abderrazak Elbouchikhi (Zak) - hello@zakitpro.com
     Requires:     Windows PowerShell 5.1 or PowerShell 7.x; Microsoft.Graph.Authentication 2.x.
                   An account with read access to Intune and Entra (for example Global Reader + Intune
@@ -166,7 +166,7 @@ function Get-SafeProperty {
     [CmdletBinding()]
     param([Parameter()][AllowNull()]$InputObject, [Parameter(Mandatory)][string]$Name)
     if ($null -eq $InputObject) { return $null }
-    if ($InputObject.PSObject.Properties.Name -contains $Name) { return $InputObject.$Name }
+    if ($null -ne $InputObject.PSObject.Properties[$Name]) { return $InputObject.$Name }
     return $null
 }
 
@@ -382,6 +382,10 @@ Invoke-Check -Module 'M1' -Check 'Entra local admin setting vs Device Prep accou
     if ($dpStandardUser -and $label -in @('Selected', 'None')) {
         Add-Finding -Module 'M1' -Check 'Entra local admin setting vs Device Prep account type' -Result 'Fail' `
             -Detail "A Device Prep policy uses Standard user and 'Registering user is added as local administrator' = $label. Learn lists this as a known issue (provisioning skipped)." -Signal 'T_DP_STDUSER_ENTRA_LOCALADMIN'
+    }
+    elseif ($dpStandardUser -and $label -like 'Unknown*') {
+        Add-Finding -Module 'M1' -Check 'Entra local admin setting vs Device Prep account type' -Result 'Warn' `
+            -Detail "A Device Prep policy uses Standard user, but the 'Registering user is added as local administrator' setting couldn't be read (value: '$type'). Check it in Entra > Devices > Device settings: Selected or None skips provisioning (Learn known issue)."
     }
     else {
         Add-Finding -Module 'M1' -Check 'Entra local admin setting vs Device Prep account type' -Result 'Pass' `
@@ -604,7 +608,7 @@ function ConvertTo-ZkDashboardHtml {
         if (-not $statuses.Contains($st)) { $statuses.Add($st) }
         $ev = & $enc $f.Evidence
         $evCell = if ([string]::IsNullOrWhiteSpace([string]$f.Evidence)) { '<span class="muted">None</span>' } else { '<details><summary>Show evidence</summary><pre>' + $ev + '</pre></details><pre class="print-ev">' + $ev + '</pre>' }
-        [void]$rows.Append('<tr data-sev="' + $c + '" data-st="' + (& $enc $st) + '"><td><span class="st st-' + $c + '" data-status="' + $c + '">' + $label[$c] + '</span></td><td>' + (& $enc $st) + '</td>' + $(if ($hasConf) { '<td>' + $(if ($f.PSObject.Properties['Confidence']) { & $enc $f.Confidence } else { '' }) + '</td>' } else { '' }) + '<td>' + (& $enc $f.Scope) + '</td><td>' + (& $enc $f.Check) + '</td><td>' + (& $enc $f.Finding) + '</td><td>' + $evCell + '</td><td>' + $f.NextHtml + '</td></tr>' + "`n")
+        [void]$rows.Append('<tr data-sev="' + $c + '" data-st="' + (& $enc $st) + '"><td><span class="st st-' + $c + '" data-status="' + $c + '">' + $label[$c] + '</span></td><td>' + (& $enc $st) + '</td>' + $(if ($hasConf) { '<td>' + $(if ($f.PSObject.Properties['Confidence']) { & $enc $f.Confidence } else { '' }) + '</td>' } else { '' }) + '<td class="c-scope">' + (& $enc $f.Scope) + '</td><td class="c-check">' + (& $enc $f.Check) + '</td><td>' + (& $enc $f.Finding) + '</td><td>' + $evCell + '</td><td>' + $f.NextHtml + '</td></tr>' + "`n")
     }
     if (@($Finding).Count -eq 0) { [void]$rows.Append('<tr><td colspan="8" class="muted">No checks produced output.</td></tr>') }
     $scored = $count.red + $count.yellow + $count.green
@@ -634,7 +638,7 @@ function ConvertTo-ZkDashboardHtml {
 .filters input,.filters select{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px;min-width:170px}
 button.tg{font:inherit;cursor:pointer;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:9999px;padding:6px 14px}
 .tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--card)}table{border-collapse:collapse;width:100%}th{background:var(--head);color:var(--head-text);text-align:left;padding:9px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0}
-td{padding:9px 10px;border-top:1px solid var(--border);vertical-align:top;word-break:break-word}tbody tr:hover{background:var(--surface)}
+td{padding:9px 10px;border-top:1px solid var(--border);vertical-align:top;word-break:normal;overflow-wrap:break-word}td.c-scope{min-width:110px}td.c-check{min-width:170px}tbody tr:hover{background:var(--surface)}
 .st{display:inline-block;border-radius:9999px;padding:2px 10px;font-size:12px;font-weight:700;white-space:nowrap;word-break:keep-all}
 #zk-findings th:nth-child(1),#zk-findings td:nth-child(1){min-width:104px;white-space:nowrap}#zk-findings th:nth-child(2),#zk-findings td:nth-child(2){min-width:96px;white-space:nowrap;word-break:keep-all}
 .crit{display:inline-block;margin-top:4px;background:var(--red-bg);color:var(--red-fg);font-weight:700;font-size:12px;border-radius:9999px;padding:2px 10px}.legend{font-size:12px;color:var(--muted);margin-top:6px;max-width:260px}.card.scorecard{grid-column:span 2}.st-red{background:var(--red-bg);color:var(--red-fg)}.st-yellow{background:var(--yellow-bg);color:var(--yellow-fg)}.st-green{background:var(--green-bg);color:var(--green-fg)}.st-grey{background:var(--grey-bg);color:var(--grey-fg)}
@@ -704,7 +708,7 @@ $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $jsonFile = Join-Path -Path $OutputPath -ChildPath "TenantPreCheck-$stamp.json"
 $htmlFile = Join-Path -Path $OutputPath -ChildPath "TenantPreCheck-$stamp.html"
 $report = [PSCustomObject]@{
-    Tool      = 'ZakitPro Kit 1 Invoke-TenantPreCheck 1.3.1'
+    Tool      = 'ZakitPro Kit 1 Invoke-TenantPreCheck 1.3.2'
     RunAt     = (Get-Date).ToString('o')
     TenantId  = $context.TenantId
     Scopes    = $context.Scopes

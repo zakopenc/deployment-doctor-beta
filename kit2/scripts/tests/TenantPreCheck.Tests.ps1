@@ -95,6 +95,31 @@ Describe 'Invoke-ZkTenantPreCheck with mocked Graph' {
     }
 }
 
+Describe 'Tenant pre-check: one bad app object does not stop the scan' {
+    It 'logs a per-app Warn finding, checks the other apps and still writes a report' {
+        Mock Invoke-MgGraphRequest {
+            param($Uri)
+            switch -Regex ($Uri) {
+                'mobileApps\?\$filter' { return [pscustomobject]@{ value = @([pscustomobject]@{ id = 'bad1'; displayName = 'Broken App' }, [pscustomobject]@{ id = 'app2'; displayName = 'Fabrikam Agent' }) } }
+                'mobileApps/bad1$' { return [pscustomobject]@{ id = 'bad1'; displayName = 'Broken App' } }
+                'mobileApps/app2$' { return (New-TestApp -Id 'app2' -Name 'Fabrikam Agent') }
+                default { return [pscustomobject]@{ value = @() } }
+            }
+        }
+        Mock Test-ZkWin32AppDefinition -ParameterFilter { $App.id -eq 'bad1' } -MockWith { throw "The property 'rules' cannot be found on this object." }
+        $r = Invoke-ZkTenantPreCheck -SkipInstallSummary -WarningAction SilentlyContinue
+        @($r.Apps.Id) | Should -Be @('app2')
+        $bad = @($r.Findings | Where-Object { $_.CheckId -eq 'T00' })
+        $bad.Count | Should -Be 1
+        $bad[0].AppId | Should -Be 'bad1'
+        $bad[0].Severity | Should -Be 'Medium'
+        @($r.Errors) -join ' ' | Should -Match 'Broken App \(bad1\) could not be evaluated'
+        $f = Export-ZkTenantReport -Report $r -OutputPath $TestDrive -KnownCause $script:Db
+        Test-Path -LiteralPath $f.Html | Should -BeTrue
+        (Get-Content -LiteralPath $f.Html -Raw) | Should -Match 'Warn \(Medium\)'
+    }
+}
+
 Describe 'Tenant pre-check edge cases (mocked Graph)' {
     It 'warns and still exports a report when no Win32 apps exist' {
         Mock Invoke-MgGraphRequest { return [pscustomobject]@{ value = @() } }
@@ -106,7 +131,7 @@ Describe 'Tenant pre-check edge cases (mocked Graph)' {
     }
     It 'follows @odata.nextLink paging' {
         Mock Invoke-MgGraphRequest {
-            param($Method, $Uri)
+            param($Uri)
             if ($Uri -match 'page2') { return [pscustomobject]@{ value = @([pscustomobject]@{ id = '2' }) } }
             return [pscustomobject]@{ value = @([pscustomobject]@{ id = '1' }); '@odata.nextLink' = 'https://graph.microsoft.com/beta/x?page2' }
         }
@@ -118,7 +143,7 @@ Describe 'Tenant pre-check edge cases (mocked Graph)' {
     }
     It 'skips an app that cannot be read and records the error' {
         Mock Invoke-MgGraphRequest {
-            param($Method, $Uri)
+            param($Uri)
             switch -Regex ($Uri) {
                 'mobileApps\?\$filter' { return [pscustomobject]@{ value = @([pscustomobject]@{ id = 'gone'; displayName = 'Gone App' }) } }
                 default { throw 'NotFound (404)' }
@@ -131,7 +156,7 @@ Describe 'Tenant pre-check edge cases (mocked Graph)' {
     }
     It 'does not duplicate identical findings' {
         Mock Invoke-MgGraphRequest {
-            param($Method, $Uri)
+            param($Uri)
             $au = [pscustomobject]@{ autoUpdateSettings = [pscustomobject]@{ autoUpdateSupersededAppsState = 'enabled' } }
             switch -Regex ($Uri) {
                 'mobileApps\?\$filter' { return [pscustomobject]@{ value = @([pscustomobject]@{ id = 'app1'; displayName = 'A' }) } }
@@ -152,7 +177,7 @@ Describe 'Tenant pre-check edge cases (mocked Graph)' {
         $j = Get-Content -LiteralPath $f.Json -Raw -Encoding UTF8 | ConvertFrom-Json
         $j.PSObject.Properties.Name | Should -Contain 'Apps'
         $j.PSObject.Properties.Name | Should -Contain 'Findings'
-        $j.KitVersion | Should -Be '1.2.1'
+        $j.KitVersion | Should -Be '1.2.2'
     }
 }
 

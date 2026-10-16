@@ -66,7 +66,7 @@
 
 .NOTES
     Name:         Invoke-DeviceDiagnostic.ps1
-    Version:      1.3.1 (2026-10-16)
+    Version:      1.3.2 (2026-10-16)
     Publisher:    ZakitPro - Abderrazak Elbouchikhi (Zak) - hello@zakitpro.com
     Requires:     Windows 10/11, Windows PowerShell 5.1. Run elevated (or as SYSTEM at Shift+F10) to read all
                   logs. No modules, no network, no Graph.
@@ -222,7 +222,7 @@ function Get-ZkWinEvent {
         if ($ListLog) { return @($ev | Where-Object { $_.LogName -like $ListLog } | Group-Object -Property LogName | ForEach-Object { [PSCustomObject]@{ LogName = $_.Name; RecordCount = $_.Count } }) }
         $sel = @($ev | Where-Object { $_.LogName -eq $FilterHashtable.LogName -and (-not $FilterHashtable.ContainsKey('Id') -or @($FilterHashtable.Id) -contains [int]$_.Id) })
         if ($sel.Count -eq 0) { throw 'No events were found that match the specified selection criteria.' }
-        return @($sel | Select-Object -First $MaxEvents | ForEach-Object { [PSCustomObject]@{ Id = [int]$_.Id; TimeCreated = (Get-Date).AddMinutes(-[int]$_.MinutesAgo); Level = [int]$_.Level; LevelDisplayName = $_.LevelDisplayName; Message = $_.Message; LogName = $_.LogName } })
+        return @($sel | Select-Object -First $MaxEvents | ForEach-Object { [PSCustomObject]@{ Id = [int]$_.Id; TimeCreated = $(if ($_.PSObject.Properties['Time']) { [datetime]::Parse([string]$_.Time, [Globalization.CultureInfo]::InvariantCulture) } else { (Get-Date).AddMinutes(-[int]$_.MinutesAgo) }); Level = [int]$_.Level; LevelDisplayName = $_.LevelDisplayName; Message = $_.Message; LogName = $_.LogName } })
     }
     if ($ListLog) { return @(Get-WinEvent -ListLog $ListLog -ErrorAction SilentlyContinue) }
     @(Get-WinEvent -FilterHashtable $FilterHashtable -MaxEvents $MaxEvents -ErrorAction Stop)
@@ -562,7 +562,7 @@ $collectMd = 'md C:\Temp   (or: New-Item -Path C:\Temp -ItemType Directory -Forc
 $collect = 'mdmdiagnosticstool.exe -area Autopilot -cab C:\Temp\AutopilotDiag.cab'
 $collectTpm = 'mdmdiagnosticstool.exe -area "Autopilot;TPM" -cab C:\Temp\AutopilotDiag.cab'
 
-Write-Information -MessageData "`nZakitPro Deployment Doctor - device diagnostic 1.3.1 (read-only)" -InformationAction Continue
+Write-Information -MessageData "`nZakitPro Deployment Doctor - device diagnostic 1.3.2 (read-only)" -InformationAction Continue
 Write-Information -MessageData "Expected: $ExpectedMode | Deployment type: $mode | $($script:Facts.OS) | IME: $(if ($imeVersion) { $imeVersion } else { 'not installed' })" -InformationAction Continue
 if ($verdicts.Count -eq 0) { Write-Information -MessageData 'No known-cause signals found.' -InformationAction Continue }
 foreach ($v in $verdicts) {
@@ -672,7 +672,7 @@ function ConvertTo-ZkDashboardHtml {
         if (-not $statuses.Contains($st)) { $statuses.Add($st) }
         $ev = & $enc $f.Evidence
         $evCell = if ([string]::IsNullOrWhiteSpace([string]$f.Evidence)) { '<span class="muted">None</span>' } else { '<details><summary>Show evidence</summary><pre>' + $ev + '</pre></details><pre class="print-ev">' + $ev + '</pre>' }
-        [void]$rows.Append('<tr data-sev="' + $c + '" data-st="' + (& $enc $st) + '"><td><span class="st st-' + $c + '" data-status="' + $c + '">' + $label[$c] + '</span></td><td>' + (& $enc $st) + '</td>' + $(if ($hasConf) { '<td>' + $(if ($f.PSObject.Properties['Confidence']) { & $enc $f.Confidence } else { '' }) + '</td>' } else { '' }) + '<td>' + (& $enc $f.Scope) + '</td><td>' + (& $enc $f.Check) + '</td><td>' + (& $enc $f.Finding) + '</td><td>' + $evCell + '</td><td>' + $f.NextHtml + '</td></tr>' + "`n")
+        [void]$rows.Append('<tr data-sev="' + $c + '" data-st="' + (& $enc $st) + '"><td><span class="st st-' + $c + '" data-status="' + $c + '">' + $label[$c] + '</span></td><td>' + (& $enc $st) + '</td>' + $(if ($hasConf) { '<td>' + $(if ($f.PSObject.Properties['Confidence']) { & $enc $f.Confidence } else { '' }) + '</td>' } else { '' }) + '<td class="c-scope">' + (& $enc $f.Scope) + '</td><td class="c-check">' + (& $enc $f.Check) + '</td><td>' + (& $enc $f.Finding) + '</td><td>' + $evCell + '</td><td>' + $f.NextHtml + '</td></tr>' + "`n")
     }
     if (@($Finding).Count -eq 0) { [void]$rows.Append('<tr><td colspan="8" class="muted">No checks produced output.</td></tr>') }
     $scored = $count.red + $count.yellow + $count.green
@@ -702,7 +702,7 @@ function ConvertTo-ZkDashboardHtml {
 .filters input,.filters select{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px;min-width:170px}
 button.tg{font:inherit;cursor:pointer;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:9999px;padding:6px 14px}
 .tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--card)}table{border-collapse:collapse;width:100%}th{background:var(--head);color:var(--head-text);text-align:left;padding:9px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0}
-td{padding:9px 10px;border-top:1px solid var(--border);vertical-align:top;word-break:break-word}tbody tr:hover{background:var(--surface)}
+td{padding:9px 10px;border-top:1px solid var(--border);vertical-align:top;word-break:normal;overflow-wrap:break-word}td.c-scope{min-width:110px}td.c-check{min-width:170px}tbody tr:hover{background:var(--surface)}
 .st{display:inline-block;border-radius:9999px;padding:2px 10px;font-size:12px;font-weight:700;white-space:nowrap;word-break:keep-all}
 #zk-findings th:nth-child(1),#zk-findings td:nth-child(1){min-width:104px;white-space:nowrap}#zk-findings th:nth-child(2),#zk-findings td:nth-child(2){min-width:96px;white-space:nowrap;word-break:keep-all}
 .crit{display:inline-block;margin-top:4px;background:var(--red-bg);color:var(--red-fg);font-weight:700;font-size:12px;border-radius:9999px;padding:2px 10px}.legend{font-size:12px;color:var(--muted);margin-top:6px;max-width:260px}.card.scorecard{grid-column:span 2}.st-red{background:var(--red-bg);color:var(--red-fg)}.st-yellow{background:var(--yellow-bg);color:var(--yellow-fg)}.st-green{background:var(--green-bg);color:var(--green-fg)}.st-grey{background:var(--grey-bg);color:var(--grey-fg)}
@@ -755,7 +755,7 @@ try {
     $jsonFile = Join-Path -Path $OutputPath -ChildPath "DeviceDiagnostic-$stamp.json"
 $allCauseIds = @($verdicts | ForEach-Object { $_.KnownCauseIds })
     [PSCustomObject]@{
-        Tool     = 'ZakitPro Kit 1 Invoke-DeviceDiagnostic 1.3.1'
+        Tool     = 'ZakitPro Kit 1 Invoke-DeviceDiagnostic 1.3.2'
         Facts    = $script:Facts
         Verdicts = $verdicts
         Timeline = $ordered

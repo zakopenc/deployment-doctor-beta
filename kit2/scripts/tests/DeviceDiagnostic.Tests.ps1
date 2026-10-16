@@ -107,7 +107,7 @@ Describe 'Offline diagnosis on synthetic fixtures' {
         $files = Export-ZkDeviceReport -Report $script:Report -OutputPath $out
         Test-Path -LiteralPath $files.Json | Should -BeTrue
         (Get-Content -LiteralPath $files.Html -Raw) | Should -Match 'KC-001'
-        (Get-Content -LiteralPath $files.Json -Raw | ConvertFrom-Json).KitVersion | Should -Be '1.2.1'
+        (Get-Content -LiteralPath $files.Json -Raw | ConvertFrom-Json).KitVersion | Should -Be '1.2.2'
     }
 }
 

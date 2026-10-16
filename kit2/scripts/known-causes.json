@@ -1,6 +1,6 @@
 {
   "name": "ZakitPro Kit 2 known-causes database",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "dateChecked": "2026-10-15",
   "note": "Beta signal map: IDs, titles, match patterns, status and source links only. Explanatory and fix text removed. IME logs ErrorCode as a signed int32; convert with '{0:X8}' -f, for example '{0:X8}' -f -2016345060 gives 87D1041C.",
   "enforcementStateMap": {
@@ -239,7 +239,7 @@
         "T09"
       ],
       "rankedCauses": [
-        "Removed from the beta scripts repo; see the full kit."
+        "Exit code not in the return-code table, so IME treats it as failed. Field sources (Barbat; Ooms) report it then skips the three fast retries and waits on the global re-evaluation schedule, about 24 hours (M5-1). Learn documents the 3 x 5-minute Retry behaviour and the 24-hour cadence, not the skip itself."
       ],
       "checks": [
         "Removed from the beta scripts repo; see the full kit."
@@ -254,7 +254,7 @@
         "M4-1",
         "M6-4"
       ],
-      "status": "Learn-confirmed",
+      "status": "Multi-source",
       "sources": [
         {
           "title": "Learn: Add and assign Win32 apps",
@@ -1163,7 +1163,8 @@
           "url": "https://patchtuesday.com/blog/tech-blog/win32app-retry-interval/",
           "dateChecked": "2026-10-15"
         }
-      ]
+      ],
+      "status": "Multi-source"
     },
     {
       "id": "T09b",

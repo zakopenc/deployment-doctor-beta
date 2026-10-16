@@ -26,7 +26,7 @@
       "Level": 4,
       "LevelDisplayName": "Information",
       "Message": "Device preparation started (sample).",
-      "MinutesAgo": 55
+      "Time": "2026-10-15T08:15:00"
     },
     {
       "LogName": "Microsoft-Windows-Provisioning-Bootstrapper/Operational",
@@ -34,7 +34,7 @@
       "Level": 2,
       "LevelDisplayName": "Error",
       "Message": "App install reported an error: Contoso VPN (FAKE) 0x80070001 (sample).",
-      "MinutesAgo": 20
+      "Time": "2026-10-15T08:50:00"
     }
   ]
 }

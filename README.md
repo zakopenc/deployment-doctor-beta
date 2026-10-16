@@ -1,6 +1,6 @@
 # Deployment Doctor (beta scripts)
 
-Read-only PowerShell diagnostics for Windows Autopilot / Autopilot device preparation (Kit 1 scripts v1.3.1) and Intune Win32 app deployments (Kit 2 scripts v1.2.1), from ZakitPro.
+Read-only PowerShell diagnostics for Windows Autopilot / Autopilot device preparation (Kit 1 scripts v1.3.2) and Intune Win32 app deployments (Kit 2 scripts v1.2.2), from ZakitPro.
 
 > **Warning: not tested against a live tenant.** These scripts have been checked only with PSScriptAnalyzer and Pester unit tests that use mocked Graph responses and synthetic log files. They have not been run on a real tenant or a real device.
 >
@@ -71,7 +71,8 @@ Each script writes one self-contained HTML dashboard next to its JSON report. It
 - **Themes:** light and dark, following `prefers-color-scheme`, plus a toggle button. Colours come from the ZakitPro design system, with accessible contrast. Text uses the system font stack.
 - **Print:** print CSS expands all evidence, shows every row, and prints link URLs.
 - **Header:** each kit's own name. A Kit 2 device report built with `-LogPath` names the analysed log source ("Offline log analysis") instead of the computer it ran on. A Kit 1 `-SamplePath` report says "Sample data" and "FAKE".
-- **Not applicable checks:** on a tenant with no Autopilot device preparation policy, Kit 1's Device Prep service principal and custom-role checks report Info ("Not applicable now") instead of Critical/Warning.
+- **Not applicable checks:** on a tenant with no Autopilot device preparation policy, Kit 1's Device Prep service principal and custom-role checks report Info ("Not applicable now") instead of Critical/Warning. With a Standard-user Device Prep policy, the Entra local-admin check reports Warn, not Pass, when that setting can't be read.
+- **Resilient tenant scan (Kit 2):** each app is checked on its own. If one app object can't be evaluated, it gets a Warning finding (`T00`) and the rest of the apps are still checked and reported.
 - **`-NoHtml`:** writes only the JSON report. The scripts stay read-only: the local report files are the only thing they write.
 
 | Light | Dark |
@@ -120,6 +121,7 @@ Install-Module Pester -MinimumVersion 5.0 -Scope CurrentUser
 Install-Module PSScriptAnalyzer -Scope CurrentUser
 Invoke-Pester -Path ./kit1/tests, ./kit2/scripts/tests
 ```
+One test is skipped on purpose in this repo: it checks that every KC ID cited by the paid Kit 1 guide exists, and the guide isn't published here.
 
 ## Reporting results
 Open an issue with the **Test report** template. Remove tenant names, tenant/device/user IDs, UPNs and any secrets before you post.

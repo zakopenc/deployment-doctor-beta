@@ -67,7 +67,7 @@
 
 .NOTES
     Name:        Invoke-TenantPreCheck.ps1
-    Version:     1.2.1 (2026-10-16)
+    Version:     1.2.2 (2026-10-16)
     Publisher:   ZakitPro (zakitpro.com), author Abderrazak Elbouchikhi (Zak). Support: hello@zakitpro.com
     Requires:    Windows PowerShell 5.1 or PowerShell 7.x; Microsoft.Graph.Authentication 2.x;
                  an Intune role that can read apps (for example Intune Read Only Operator).
@@ -117,7 +117,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$script:KitVersion = '1.2.1'
+$script:KitVersion = '1.2.2'
 $script:GraphBase = 'https://graph.microsoft.com/beta'
 
 function Invoke-ZkGraphGet {
@@ -373,7 +373,7 @@ function Test-ZkWin32AppDefinition {
         $has1618Retry = @($codes | Where-Object { [int](Get-ZkPropertyValue -InputObject $_ -Name 'returnCode') -eq 1618 -and (Get-ZkPropertyValue -InputObject $_ -Name 'type') -eq 'retry' }).Count -gt 0
         if (-not $has1618Retry) {
             $f.Add((New-ZkFinding -CheckId 'T09' -Severity 'Medium' -AppId $id -AppName $name `
-                        -Message '1618 (another installation in progress) is not mapped to Retry. An unmapped failure code skips the 3 x 5-minute retries and waits about 24 hours.' `
+                        -Message '1618 (another installation in progress) is not mapped to Retry. Field sources report that an unmapped failure code skips the 3 x 5-minute retries and waits about 24 hours.' `
                         -Evidence (($codes | ForEach-Object { '{0}={1}' -f (Get-ZkPropertyValue -InputObject $_ -Name 'returnCode'), (Get-ZkPropertyValue -InputObject $_ -Name 'type') }) -join ', ')))
         }
         $hard = @($codes | Where-Object { (Get-ZkPropertyValue -InputObject $_ -Name 'type') -eq 'hardReboot' })
@@ -462,7 +462,8 @@ function Test-ZkRelationshipGraph {
         [Parameter(Mandatory)] [hashtable]$AppNames
     )
     $f = New-Object -TypeName System.Collections.Generic.List[object]
-    $nameOf = { param($i) if ($AppNames.ContainsKey($i)) { $AppNames[$i] } else { $i } }
+    $appNameMap = $AppNames
+    $nameOf = { param($i) if ($appNameMap.ContainsKey($i)) { $appNameMap[$i] } else { $i } }
 
     # Undirected component size over dependency edges (Learn counts shared graphs together)
     $adj = @{}
@@ -655,7 +656,7 @@ function ConvertTo-ZkDashboardHtml {
         if (-not $statuses.Contains($st)) { $statuses.Add($st) }
         $ev = & $enc $f.Evidence
         $evCell = if ([string]::IsNullOrWhiteSpace([string]$f.Evidence)) { '<span class="muted">None</span>' } else { '<details><summary>Show evidence</summary><pre>' + $ev + '</pre></details><pre class="print-ev">' + $ev + '</pre>' }
-        [void]$rows.Append('<tr data-sev="' + $c + '" data-st="' + (& $enc $st) + '"><td><span class="st st-' + $c + '" data-status="' + $c + '">' + $label[$c] + '</span></td><td>' + (& $enc $st) + '</td>' + $(if ($hasConf) { '<td>' + $(if ($f.PSObject.Properties['Confidence']) { & $enc $f.Confidence } else { '' }) + '</td>' } else { '' }) + '<td>' + (& $enc $f.Scope) + '</td><td>' + (& $enc $f.Check) + '</td><td>' + (& $enc $f.Finding) + '</td><td>' + $evCell + '</td><td>' + $f.NextHtml + '</td></tr>' + "`n")
+        [void]$rows.Append('<tr data-sev="' + $c + '" data-st="' + (& $enc $st) + '"><td><span class="st st-' + $c + '" data-status="' + $c + '">' + $label[$c] + '</span></td><td>' + (& $enc $st) + '</td>' + $(if ($hasConf) { '<td>' + $(if ($f.PSObject.Properties['Confidence']) { & $enc $f.Confidence } else { '' }) + '</td>' } else { '' }) + '<td class="c-scope">' + (& $enc $f.Scope) + '</td><td class="c-check">' + (& $enc $f.Check) + '</td><td>' + (& $enc $f.Finding) + '</td><td>' + $evCell + '</td><td>' + $f.NextHtml + '</td></tr>' + "`n")
     }
     if (@($Finding).Count -eq 0) { [void]$rows.Append('<tr><td colspan="8" class="muted">No checks produced output.</td></tr>') }
     $scored = $count.red + $count.yellow + $count.green
@@ -685,7 +686,7 @@ function ConvertTo-ZkDashboardHtml {
 .filters input,.filters select{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px;min-width:170px}
 button.tg{font:inherit;cursor:pointer;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:9999px;padding:6px 14px}
 .tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--card)}table{border-collapse:collapse;width:100%}th{background:var(--head);color:var(--head-text);text-align:left;padding:9px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0}
-td{padding:9px 10px;border-top:1px solid var(--border);vertical-align:top;word-break:break-word}tbody tr:hover{background:var(--surface)}
+td{padding:9px 10px;border-top:1px solid var(--border);vertical-align:top;word-break:normal;overflow-wrap:break-word}td.c-scope{min-width:110px}td.c-check{min-width:170px}tbody tr:hover{background:var(--surface)}
 .st{display:inline-block;border-radius:9999px;padding:2px 10px;font-size:12px;font-weight:700;white-space:nowrap;word-break:keep-all}
 #zk-findings th:nth-child(1),#zk-findings td:nth-child(1){min-width:104px;white-space:nowrap}#zk-findings th:nth-child(2),#zk-findings td:nth-child(2){min-width:96px;white-space:nowrap;word-break:keep-all}
 .crit{display:inline-block;margin-top:4px;background:var(--red-bg);color:var(--red-fg);font-weight:700;font-size:12px;border-radius:9999px;padding:2px 10px}.legend{font-size:12px;color:var(--muted);margin-top:6px;max-width:260px}.card.scorecard{grid-column:span 2}.st-red{background:var(--red-bg);color:var(--red-fg)}.st-yellow{background:var(--yellow-bg);color:var(--yellow-fg)}.st-green{background:var(--green-bg);color:var(--green-fg)}.st-grey{background:var(--grey-bg);color:var(--grey-fg)}
@@ -839,6 +840,7 @@ function Invoke-ZkTenantPreCheck {
             Write-Warning -Message $errors[$errors.Count - 1]
             continue
         }
+        try {
         $names[[string]$app.id] = [string]$app.displayName
         foreach ($x in (Test-ZkWin32AppDefinition -App $app)) { $findings.Add($x) }
 
@@ -896,6 +898,15 @@ function Invoke-ZkTenantPreCheck {
                 Assignments        = ($asgText -join '; ')
                 InstallSummary     = $summaryText
             })
+        }
+        catch {
+            # One odd app object must not stop the scan: record it and carry on with the next app.
+            $appLabel = [string](Get-ZkPropertyValue -InputObject $item -Name 'displayName')
+            $errors.Add(("App {0} ({1}) could not be evaluated: {2}" -f $appLabel, $item.id, $_.Exception.Message))
+            Write-Warning -Message $errors[$errors.Count - 1]
+            $findings.Add((New-ZkFinding -CheckId 'T00' -Severity 'Medium' -AppId ([string]$item.id) -AppName $appLabel `
+                        -Message 'This app could not be evaluated: its Graph object is missing data the checks expect. Check it in the Intune portal; other apps were checked as normal.' -Evidence $_.Exception.Message))
+        }
     }
     $graph = Get-ZkRelationshipGraph -Relationship $relationships
     foreach ($x in (Test-ZkRelationshipGraph -Graph $graph -AssignedAppIds $assigned.ToArray() -AppNames $names)) { $findings.Add($x) }

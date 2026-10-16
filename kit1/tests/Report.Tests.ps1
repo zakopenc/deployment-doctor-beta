@@ -143,6 +143,25 @@ Describe 'Kit 1 Device Prep-only checks on tenants without Device Prep' {
     }
 }
 
+Describe 'Kit 1 Entra local admin setting when it cannot be read' {
+    BeforeEach { $script:Out = Join-Path -Path $TestDrive -ChildPath ([guid]::NewGuid().ToString()) }
+    It 'reports Warn, not Pass, for a Standard-user Device Prep policy when the setting type is unknown' {
+        Mock -CommandName Get-MgContext -MockWith { [PSCustomObject]@{ TenantId = 'contoso.onmicrosoft.com'; Scopes = @() } }
+        Mock -CommandName Invoke-MgGraphRequest -MockWith {
+            switch -Regex ($Uri) {
+                'configurationPolicies\?' { [PSCustomObject]@{ value = @([PSCustomObject]@{ id = 'p1'; name = 'DP Contoso'; templateReference = [PSCustomObject]@{ templateFamily = 'enrollmentConfiguration' } }) } }
+                'configurationPolicies/p1/settings' { [PSCustomObject]@{ value = @([PSCustomObject]@{ settingInstance = [PSCustomObject]@{ settingDefinitionId = 'enrollment_autopilot_dpp_accountype'; choiceSettingValue = [PSCustomObject]@{ value = 'enrollment_autopilot_dpp_accountype_1' } } }) } }
+                'deviceRegistrationPolicy' { [PSCustomObject]@{ azureADJoin = [PSCustomObject]@{ localAdmins = [PSCustomObject]@{ registeringUsers = [PSCustomObject]@{} } } } }
+                default { [PSCustomObject]@{ value = @() } }
+            }
+        }
+        $r = & $Tenant -OutputPath $Out -KnownCausesPath $Db -SkipConnect -PassThru -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+        $f = $r | Where-Object { $_.Check -eq 'Entra local admin setting vs Device Prep account type' }
+        $f.Result | Should -Be 'Warn' -Because $f.Detail
+        $f.Detail | Should -Match "couldn't be read"
+    }
+}
+
 Describe 'Kit 1 device diagnostic -SamplePath (offline practice mode)' {
     BeforeAll {
         if (-not (Get-Command -Name Get-WinEvent -ErrorAction SilentlyContinue)) { function global:Get-WinEvent { param($ListLog, $FilterHashtable, $MaxEvents, $ErrorAction) } }
