@@ -1,0 +1,11 @@
+<![LOG[[Win32App] ExecManager: processing targeted app (name='Contoso Viewer', id='6c1f3d0e-1111-4a2b-9c3d-000000000001') with intent=3]LOG]!><time="10:00:01.1234567" date="{D1}" component="AppWorkload" context="" type="1" thread="12" file="">
+<![LOG[[Win32App] Checked under path: C:\Program Files\Contoso\Viewer, applicationDetected: False]LOG]!><time="10:00:02.0000000" date="{D1}" component="AppWorkload" context="" type="1" thread="12" file="">
+<![LOG[[Win32App] Content downloaded to C:\Program Files (x86)\Microsoft Intune Management Extension\Content\Incoming\6c1f3d0e-1111-4a2b-9c3d-000000000001_1.bin]LOG]!><time="10:00:20.0000000" date="{D1}" component="AppWorkload" context="" type="1" thread="12" file="">
+<![LOG[[Win32App] lpExitCode 0]LOG]!><time="10:02:00.0000000" date="{D1}" component="AppWorkload" context="" type="1" thread="12" file="">
+<![LOG[[Win32App] Checked under path: C:\Program Files\Contoso\Viewer, applicationDetected: False]LOG]!><time="10:02:05.0000000" date="{D1}" component="AppWorkload" context="" type="1" thread="12" file="">
+<![LOG[[Win32App] ExecManager: processing targeted app (name='Fabrikam Tool', id='6c1f3d0e-2222-4a2b-9c3d-000000000002')]LOG]!><time="10:05:00.0000000" date="{D1}" component="AppWorkload" context="" type="1" thread="14" file="">
+<![LOG[[Win32App] applicationDetected: False]LOG]!><time="10:05:01.0000000" date="{D1}" component="AppWorkload" context="" type="1" thread="14" file="">
+<![LOG[[Win32App] lpExitCode 1618
+second line of the same record]LOG]!><time="10:06:00.0000000" date="{D1}" component="AppWorkload" context="" type="3" thread="14" file="">
+<![LOG[[Win32App] Error with lpExitCode 1618 without mapping for app 6c1f3d0e-2222-4a2b-9c3d-000000000002]LOG]!><time="10:06:01.0000000" date="{D1}" component="AppWorkload" context="" type="3" thread="14" file="">
+<![LOG[[Win32App][GRSManager] App with id 6c1f3d0e-2222-4a2b-9c3d-000000000002 is not expired, will be skipped]LOG]!><time="11:06:01.0000000" date="{D1}" component="AppWorkload" context="" type="1" thread="15" file="">

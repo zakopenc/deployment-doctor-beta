@@ -1,0 +1,8 @@
+<![LOG[[Win32App] ExecManager: processing targeted app (name='Healthy App', id='6c1f3d0e-4444-4a2b-9c3d-000000000004')]LOG]!><time="08:00:00.0000000" date="{D1}" component="AppWorkload" context="" type="1" thread="20" file="">
+<![LOG[[Win32App] applicationDetected: False]LOG]!><time="08:00:01.0000000" date="{D1}" component="AppWorkload" context="" type="1" thread="20" file="">
+<![LOG[[Win32App] Content downloaded to C:\Program Files (x86)\Microsoft Intune Management Extension\Content\Incoming\6c1f3d0e-4444-4a2b-9c3d-000000000004_1.bin]LOG]!><time="08:00:10.0000000" date="{D1}" component="AppWorkload" context="" type="1" thread="20" file="">
+<![LOG[[Win32App] lpExitCode 0]LOG]!><time="08:01:00.0000000" date="{D1}" component="AppWorkload" context="" type="1" thread="20" file="">
+<![LOG[[Win32App] applicationDetected: True]LOG]!><time="08:01:05.0000000" date="{D1}" component="AppWorkload" context="" type="1" thread="20" file="">
+<![LOG[[Win32App][GRSManager] App with id: 6c1f3d0e-4444-4a2b-9c3d-000000000004 is not expired.]LOG]!><time="09:01:05.0000000" date="{D1}" component="AppWorkload" context="" type="1" thread="21" file="">
+<![LOG[[Win32App] app 6c1f3d0e-4444-4a2b-9c3d-000000000004 applicationDetected: True]LOG]!><time="09:01:06.0000000" date="{D1}" component="AppWorkload" context="" type="1" thread="21" file="">
+<![LOG[[Win32App] old line for 6c1f3d0e-4444-4a2b-9c3d-000000000004 lpExitCode 1603]LOG]!><time="09:00:00.0000000" date="{DOLD}" component="AppWorkload" context="" type="3" thread="2" file="">

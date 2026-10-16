@@ -1,0 +1,1347 @@
+{
+  "name": "ZakitPro Kit 2 known-causes database",
+  "version": "1.2.0",
+  "dateChecked": "2026-10-15",
+  "note": "Beta signal map: IDs, titles, match patterns, status and source links only. Explanatory and fix text removed. IME logs ErrorCode as a signed int32; convert with '{0:X8}' -f, for example '{0:X8}' -f -2016345060 gives 87D1041C.",
+  "enforcementStateMap": {
+    "values": {
+      "1000": "Success",
+      "1003": "Received command to install",
+      "2000": "In progress",
+      "2007": "Waiting for dependencies",
+      "2008": "Installed, pending reboot",
+      "2009": "Downloaded, install not attempted",
+      "3000": "Requirements not met",
+      "4000": "Unknown",
+      "5000": "Error (see ErrorCode)",
+      "5003": "Content download failed",
+      "5999": "Error, immediate retry",
+      "6000": "Not attempted",
+      "6001": "Not attempted: dependency failed",
+      "6002": "Not attempted: pending hard reboot",
+      "6003": "Not attempted: dependency requirements not met",
+      "6004": "Not attempted: dependency with auto-install off",
+      "6005": "Not attempted: a dependency has auto-install off"
+    },
+    "sources": [
+      {
+        "title": "MSEndpointMgr (Ben Whitmore): Win32 app state messages",
+        "url": "https://msendpointmgr.com/2023/08/28/win32-app-state-messages-demystified/",
+        "dateChecked": "2026-10-15"
+      },
+      {
+        "title": "eskonr.com: Win32 app status codes",
+        "url": "https://eskonr.com/2019/11/status-codes-deep-dive-troubleshooting-win32-app-deployment/",
+        "dateChecked": "2026-10-15"
+      }
+    ],
+    "status": "Multi-source (community-decoded)"
+  },
+  "complianceStateMap": {
+    "values": {
+      "1": "Installed",
+      "2": "Not installed",
+      "4": "Error"
+    },
+    "sources": [
+      {
+        "title": "MSEndpointMgr (Ben Whitmore): Win32 app state messages",
+        "url": "https://msendpointmgr.com/2023/08/28/win32-app-state-messages-demystified/",
+        "dateChecked": "2026-10-15"
+      },
+      {
+        "title": "eskonr.com: Win32 app status codes",
+        "url": "https://eskonr.com/2019/11/status-codes-deep-dive-troubleshooting-win32-app-deployment/",
+        "dateChecked": "2026-10-15"
+      }
+    ],
+    "status": "Multi-source (community-decoded)"
+  },
+  "imeMinimumVersion": {
+    "value": "1.58.103.0",
+    "sources": [
+      {
+        "title": "Learn: Intune Management Extension",
+        "url": "https://learn.microsoft.com/en-us/intune/intune-service/apps/intune-management-extension",
+        "dateChecked": "2026-10-15"
+      }
+    ]
+  },
+  "causes": [
+    {
+      "id": "KC-001",
+      "title": "Installer succeeded but detection says not installed (0x87D1041C)",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "deviceSignals": {
+        "all": [
+          "^exit:success$",
+          "^detected:false:post$"
+        ]
+      },
+      "tenantChecks": [
+        "T04",
+        "T04b",
+        "T05",
+        "T06",
+        "T06b"
+      ],
+      "rankedCauses": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "checks": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "fix": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "confirm": "Removed from the beta scripts repo; see the full kit.",
+      "evidence": [
+        "M2-1",
+        "M2-3",
+        "M2-4",
+        "M4-5",
+        "M6-1"
+      ],
+      "status": "Learn-confirmed",
+      "sources": [
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Learn: App install error codes",
+          "url": "https://learn.microsoft.com/en-us/troubleshoot/mem/intune/app-management/app-install-error-codes",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Learn support tip: Win32 app flow",
+          "url": "https://learn.microsoft.com/en-us/troubleshoot/mem/intune/app-management/develop-deliver-working-win32-app-via-intune",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "call4cloud (Rudy Ooms): Exit code and detection rules",
+          "url": "https://call4cloud.nl/win32app-exit-code-detection-rules/",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "call4cloud (Rudy Ooms): IMECache, Attack of the Cleaner",
+          "url": "https://call4cloud.nl/win32app-ime-installation-phases-intune-troubleshoot/",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Patch My PC forum: Acrobat detection after rename",
+          "url": "https://forum.patchmypc.com/index.php?topic=6161.0",
+          "dateChecked": "2026-10-15"
+        }
+      ],
+      "detectedBy": "Device diagnostic and tenant pre-check"
+    },
+    {
+      "id": "KC-002",
+      "title": "Detection matched before install, so the install was skipped",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "deviceSignals": {
+        "all": [
+          "^detected:true:pre$",
+          "^expect:new-version$"
+        ]
+      },
+      "tenantChecks": [],
+      "rankedCauses": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "checks": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "fix": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "confirm": "Removed from the beta scripts repo; see the full kit.",
+      "evidence": [
+        "M2-2"
+      ],
+      "status": "Learn-confirmed",
+      "sources": [
+        {
+          "title": "Learn support tip: Win32 app flow",
+          "url": "https://learn.microsoft.com/en-us/troubleshoot/mem/intune/app-management/develop-deliver-working-win32-app-via-intune",
+          "dateChecked": "2026-10-15"
+        }
+      ],
+      "detectedBy": "Device diagnostic (with -ExpectNewVersion)"
+    },
+    {
+      "id": "KC-003",
+      "title": "1618: another installation is already in progress",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "deviceSignals": {
+        "any": [
+          "^exit:1618$"
+        ]
+      },
+      "tenantChecks": [
+        "T09"
+      ],
+      "rankedCauses": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "checks": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "fix": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "confirm": "Removed from the beta scripts repo; see the full kit.",
+      "evidence": [
+        "M5-1",
+        "M5-2",
+        "M6-2"
+      ],
+      "status": "Learn-confirmed",
+      "sources": [
+        {
+          "title": "Learn: MsiExec error codes",
+          "url": "https://learn.microsoft.com/en-us/windows/win32/msi/error-codes",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Patch My PC KB: ScriptRunner exit codes",
+          "url": "https://patchmypc.com/kb/script-runner-exit-codes/",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Learn: Win32 app management",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/win32",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        }
+      ],
+      "detectedBy": "Device diagnostic and tenant pre-check"
+    },
+    {
+      "id": "KC-004",
+      "title": "Failure exit code not mapped: no fast retry, about 24 hours to the next attempt",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "deviceSignals": {
+        "any": [
+          "^unmapped$"
+        ]
+      },
+      "tenantChecks": [
+        "T09"
+      ],
+      "rankedCauses": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "checks": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "fix": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "confirm": "Removed from the beta scripts repo; see the full kit.",
+      "evidence": [
+        "M5-1",
+        "M4-1",
+        "M6-4"
+      ],
+      "status": "Learn-confirmed",
+      "sources": [
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Patch Tuesday blog (Liviu Barbat): Win32app retry interval",
+          "url": "https://patchtuesday.com/blog/tech-blog/win32app-retry-interval/",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "call4cloud (Rudy Ooms): Retry failed Win32 app",
+          "url": "https://call4cloud.nl/retry-failed-win32app-installation/",
+          "dateChecked": "2026-10-15"
+        }
+      ],
+      "detectedBy": "Device diagnostic and tenant pre-check"
+    },
+    {
+      "id": "KC-005",
+      "title": "1603 or access denied: installer failed, often context or rights",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "deviceSignals": {
+        "any": [
+          "^exit:1603$",
+          "^exit:5$",
+          "^exit:-2147024891$"
+        ]
+      },
+      "tenantChecks": [
+        "T07",
+        "T01"
+      ],
+      "rankedCauses": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "checks": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "fix": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "confirm": "Removed from the beta scripts repo; see the full kit.",
+      "evidence": [
+        "M5-4",
+        "M1-2"
+      ],
+      "status": "Learn-confirmed",
+      "sources": [
+        {
+          "title": "Learn: MsiExec error codes",
+          "url": "https://learn.microsoft.com/en-us/windows/win32/msi/error-codes",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Learn: Troubleshoot Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/troubleshoot-win32",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "xvii.au (Jake Edwards): Sysnative in Intune",
+          "url": "https://xvii.au/blog/windows/using-the-sysnative-folder-in-intune-app-deployments/",
+          "dateChecked": "2026-10-15"
+        }
+      ],
+      "detectedBy": "Device diagnostic and tenant pre-check"
+    },
+    {
+      "id": "KC-006",
+      "title": "Install ran past the timeout",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "deviceSignals": {
+        "any": [
+          "^timeout$"
+        ]
+      },
+      "tenantChecks": [
+        "T08"
+      ],
+      "rankedCauses": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "checks": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "fix": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "confirm": "Removed from the beta scripts repo; see the full kit.",
+      "evidence": [
+        "M5-5"
+      ],
+      "status": "Learn-confirmed",
+      "sources": [
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        }
+      ],
+      "detectedBy": "Device diagnostic and tenant pre-check"
+    },
+    {
+      "id": "KC-007",
+      "title": "Not applicable: requirements not met",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "deviceSignals": {
+        "any": [
+          "^enforcement:3000$",
+          "^requirement-not-met$"
+        ]
+      },
+      "tenantChecks": [
+        "T15"
+      ],
+      "rankedCauses": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "checks": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "fix": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "confirm": "Removed from the beta scripts repo; see the full kit.",
+      "evidence": [
+        "M3-7",
+        "M3-8"
+      ],
+      "status": "Learn-confirmed",
+      "sources": [
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Graph: win32LobApp (beta)",
+          "url": "https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-win32lobapp?view=graph-rest-beta",
+          "dateChecked": "2026-10-15"
+        }
+      ],
+      "detectedBy": "Device diagnostic and tenant pre-check"
+    },
+    {
+      "id": "KC-008",
+      "title": "Blocked by a dependency",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "deviceSignals": {
+        "any": [
+          "^enforcement:(2007|6000|6001|6003|6004|6005)$"
+        ]
+      },
+      "tenantChecks": [
+        "T10",
+        "T17"
+      ],
+      "rankedCauses": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "checks": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "fix": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "confirm": "Removed from the beta scripts repo; see the full kit.",
+      "evidence": [
+        "M3-1",
+        "M3-2"
+      ],
+      "status": "Multi-source",
+      "sources": [
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "MSEndpointMgr (Ben Whitmore): Win32 app state messages",
+          "url": "https://msendpointmgr.com/2023/08/28/win32-app-state-messages-demystified/",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "eskonr.com: Win32 app status codes",
+          "url": "https://eskonr.com/2019/11/status-codes-deep-dive-troubleshooting-win32-app-deployment/",
+          "dateChecked": "2026-10-15"
+        }
+      ],
+      "detectedBy": "Device diagnostic and tenant pre-check"
+    },
+    {
+      "id": "KC-009",
+      "title": "Waiting on a reboot",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "deviceSignals": {
+        "any": [
+          "^enforcement:(2008|6002)$"
+        ]
+      },
+      "tenantChecks": [
+        "T09b"
+      ],
+      "rankedCauses": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "checks": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "fix": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "confirm": "Removed from the beta scripts repo; see the full kit.",
+      "evidence": [
+        "M5-3"
+      ],
+      "status": "Learn-confirmed",
+      "sources": [
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "eskonr.com: Win32 app status codes",
+          "url": "https://eskonr.com/2019/11/status-codes-deep-dive-troubleshooting-win32-app-deployment/",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "MSEndpointMgr (Ben Whitmore): Win32 app state messages",
+          "url": "https://msendpointmgr.com/2023/08/28/win32-app-state-messages-demystified/",
+          "dateChecked": "2026-10-15"
+        }
+      ],
+      "detectedBy": "Device diagnostic and tenant pre-check"
+    },
+    {
+      "id": "KC-010",
+      "title": "Content download failed",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "deviceSignals": {
+        "any": [
+          "^enforcement:5003$",
+          "^download-error$"
+        ]
+      },
+      "tenantChecks": [],
+      "rankedCauses": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "checks": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "fix": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "confirm": "Removed from the beta scripts repo; see the full kit.",
+      "evidence": [
+        "M4-7"
+      ],
+      "status": "Learn-confirmed",
+      "sources": [
+        {
+          "title": "Learn: Troubleshoot Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/troubleshoot-win32",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Learn: Intune Management Extension",
+          "url": "https://learn.microsoft.com/en-us/intune/intune-service/apps/intune-management-extension",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "eskonr.com: Win32 app status codes",
+          "url": "https://eskonr.com/2019/11/status-codes-deep-dive-troubleshooting-win32-app-deployment/",
+          "dateChecked": "2026-10-15"
+        }
+      ],
+      "detectedBy": "Device diagnostic"
+    },
+    {
+      "id": "KC-011",
+      "title": "IME missing, stopped or too old",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "deviceSignals": {
+        "any": [
+          "^ime:missing$",
+          "^ime:old$",
+          "^ime:stopped$"
+        ]
+      },
+      "tenantChecks": [],
+      "rankedCauses": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "checks": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "fix": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "confirm": "Removed from the beta scripts repo; see the full kit.",
+      "evidence": [
+        "M4-7"
+      ],
+      "status": "Learn-confirmed",
+      "sources": [
+        {
+          "title": "Learn: Intune Management Extension",
+          "url": "https://learn.microsoft.com/en-us/intune/intune-service/apps/intune-management-extension",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Learn: Troubleshoot Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/troubleshoot-win32",
+          "dateChecked": "2026-10-15"
+        }
+      ],
+      "detectedBy": "Device diagnostic"
+    },
+    {
+      "id": "KC-012",
+      "title": "Supersedence and dependency conflict",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "deviceSignals": {},
+      "tenantChecks": [
+        "T13"
+      ],
+      "rankedCauses": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "checks": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "fix": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "confirm": "Removed from the beta scripts repo; see the full kit.",
+      "evidence": [
+        "M3-4",
+        "M3-6"
+      ],
+      "status": "Learn-confirmed",
+      "sources": [
+        {
+          "title": "Learn: Win32 app supersedence",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/configure-win32-supersedence",
+          "dateChecked": "2026-10-15"
+        }
+      ],
+      "detectedBy": "Tenant pre-check"
+    },
+    {
+      "id": "KC-013",
+      "title": "Superseding app has no assignment",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "deviceSignals": {},
+      "tenantChecks": [
+        "T12"
+      ],
+      "rankedCauses": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "checks": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "fix": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "confirm": "Removed from the beta scripts repo; see the full kit.",
+      "evidence": [
+        "M3-1"
+      ],
+      "status": "Learn-confirmed",
+      "sources": [
+        {
+          "title": "Learn: Win32 app supersedence",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/configure-win32-supersedence",
+          "dateChecked": "2026-10-15"
+        }
+      ],
+      "detectedBy": "Tenant pre-check"
+    },
+    {
+      "id": "KC-014",
+      "title": "Uninstall command uses environment variables",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "deviceSignals": {},
+      "tenantChecks": [
+        "T02"
+      ],
+      "rankedCauses": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "checks": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "fix": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "confirm": "Removed from the beta scripts repo; see the full kit.",
+      "evidence": [
+        "M1-3"
+      ],
+      "status": "Learn-confirmed",
+      "sources": [
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        }
+      ],
+      "detectedBy": "Tenant pre-check"
+    },
+    {
+      "id": "KC-015",
+      "title": "Interactive install (ServiceUI)",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "deviceSignals": {},
+      "tenantChecks": [
+        "T03"
+      ],
+      "rankedCauses": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "checks": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "fix": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "confirm": "Removed from the beta scripts repo; see the full kit.",
+      "evidence": [
+        "M1-4"
+      ],
+      "status": "Learn-confirmed",
+      "sources": [
+        {
+          "title": "Learn: Win32 app management",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/win32",
+          "dateChecked": "2026-10-15"
+        }
+      ],
+      "detectedBy": "Tenant pre-check"
+    },
+    {
+      "id": "KC-016",
+      "title": "Supersedence chain or dependency graph over the limit",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "deviceSignals": {},
+      "tenantChecks": [
+        "T10",
+        "T11"
+      ],
+      "rankedCauses": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "checks": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "fix": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "confirm": "Removed from the beta scripts repo; see the full kit.",
+      "evidence": [
+        "M3-2",
+        "M3-3"
+      ],
+      "status": "Learn-confirmed",
+      "sources": [
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Learn: Win32 app supersedence",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/configure-win32-supersedence",
+          "dateChecked": "2026-10-15"
+        }
+      ],
+      "detectedBy": "Tenant pre-check"
+    },
+    {
+      "id": "KC-017",
+      "title": "Intune Windows Agent enterprise app disabled",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "deviceSignals": {},
+      "tenantChecks": [
+        "T19"
+      ],
+      "rankedCauses": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "checks": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "fix": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "confirm": "Removed from the beta scripts repo; see the full kit.",
+      "evidence": [
+        "M4-6"
+      ],
+      "status": "Learn-confirmed",
+      "sources": [
+        {
+          "title": "Learn: Intune Management Extension",
+          "url": "https://learn.microsoft.com/en-us/intune/intune-service/apps/intune-management-extension",
+          "dateChecked": "2026-10-15"
+        }
+      ],
+      "detectedBy": "Tenant pre-check"
+    },
+    {
+      "id": "KC-018",
+      "title": "Install context user, but HKLM/Program Files install",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "deviceSignals": {},
+      "tenantChecks": [
+        "T07"
+      ],
+      "rankedCauses": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "checks": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "fix": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "confirm": "Removed from the beta scripts repo; see the full kit.",
+      "evidence": [
+        "M5-4"
+      ],
+      "status": "Learn-confirmed",
+      "sources": [
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        }
+      ],
+      "detectedBy": "Tenant pre-check"
+    },
+    {
+      "id": "KC-019",
+      "title": "Installer returned a failure exit code",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "deviceSignals": {
+        "any": [
+          "^exit:-?\\d+$"
+        ],
+        "none": [
+          "^exit:(0|1641|3010|1618|1603|5|-2147024891)$",
+          "^unmapped$",
+          "^timeout$"
+        ]
+      },
+      "tenantChecks": [
+        "T07",
+        "T09"
+      ],
+      "rankedCauses": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "checks": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "fix": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "confirm": "Removed from the beta scripts repo; see the full kit.",
+      "evidence": [
+        "M5-1",
+        "M5-4"
+      ],
+      "status": "Learn-confirmed",
+      "sources": [
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Learn: MsiExec error codes",
+          "url": "https://learn.microsoft.com/en-us/windows/win32/msi/error-codes",
+          "dateChecked": "2026-10-15"
+        }
+      ],
+      "detectedBy": "Device diagnostic and tenant pre-check"
+    },
+    {
+      "id": "KC-020",
+      "title": "Device registry reports an error for the app",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "deviceSignals": {
+        "any": [
+          "^errorcode:",
+          "^enforcement:(4000|5000|5999)$"
+        ]
+      },
+      "tenantChecks": [
+        "T16"
+      ],
+      "rankedCauses": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "checks": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "fix": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "confirm": "Removed from the beta scripts repo; see the full kit.",
+      "evidence": [
+        "M4-2",
+        "M4-3",
+        "M6-1"
+      ],
+      "status": "Multi-source",
+      "sources": [
+        {
+          "title": "Learn: App install error codes",
+          "url": "https://learn.microsoft.com/en-us/troubleshoot/mem/intune/app-management/app-install-error-codes",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "MSEndpointMgr (Ben Whitmore): Win32 app state messages",
+          "url": "https://msendpointmgr.com/2023/08/28/win32-app-state-messages-demystified/",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "eskonr.com: Win32 app status codes",
+          "url": "https://eskonr.com/2019/11/status-codes-deep-dive-troubleshooting-win32-app-deployment/",
+          "dateChecked": "2026-10-15"
+        }
+      ],
+      "detectedBy": "Device diagnostic and tenant pre-check"
+    },
+    {
+      "id": "KC-021",
+      "title": "No IME logs found",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "deviceSignals": {
+        "any": [
+          "^logs:none$"
+        ]
+      },
+      "tenantChecks": [],
+      "rankedCauses": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "checks": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "fix": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "confirm": "Removed from the beta scripts repo; see the full kit.",
+      "evidence": [
+        "M4-7"
+      ],
+      "status": "Learn-confirmed",
+      "sources": [
+        {
+          "title": "Learn: Intune Management Extension",
+          "url": "https://learn.microsoft.com/en-us/intune/intune-service/apps/intune-management-extension",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Learn: Troubleshoot Win32 app issues",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/troubleshoot-win32",
+          "dateChecked": "2026-10-15"
+        }
+      ],
+      "detectedBy": "Device diagnostic"
+    },
+    {
+      "id": "KC-022",
+      "title": "Win32 and line-of-business (MSI) apps mixed during Autopilot enrollment",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "deviceSignals": {},
+      "tenantChecks": [],
+      "rankedCauses": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "checks": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "fix": [
+        "Removed from the beta scripts repo; see the full kit."
+      ],
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "confirm": "Removed from the beta scripts repo; see the full kit.",
+      "evidence": [
+        "M6-2"
+      ],
+      "status": "Learn-confirmed",
+      "detectedBy": "Manual check (not detected by the scripts)",
+      "sources": [
+        {
+          "title": "Learn: Win32 app management",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/win32",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Learn: Troubleshoot Win32 app issues",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/troubleshoot-win32",
+          "dateChecked": "2026-10-15"
+        }
+      ]
+    }
+  ],
+  "tenantChecks": [
+    {
+      "id": "T01",
+      "title": "Install/uninstall uses 32-bit PowerShell",
+      "evidence": "M1-2",
+      "sources": [
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "xvii.au (Jake Edwards): Sysnative in Intune",
+          "url": "https://xvii.au/blog/windows/using-the-sysnative-folder-in-intune-app-deployments/",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "SMBtotheCloud: Registry changes with Win32 apps",
+          "url": "https://smbtothecloud.com/make-registry-changes-with-intune-win32-apps/",
+          "dateChecked": "2026-10-15"
+        }
+      ]
+    },
+    {
+      "id": "T02",
+      "title": "Environment variables in uninstall command",
+      "evidence": "M1-3",
+      "sources": [
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        }
+      ]
+    },
+    {
+      "id": "T03",
+      "title": "Interactive helper (ServiceUI) in commands",
+      "evidence": "M1-4",
+      "sources": [
+        {
+          "title": "Learn: Win32 app management",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/win32",
+          "dateChecked": "2026-10-15"
+        }
+      ]
+    },
+    {
+      "id": "T04",
+      "title": "Detection script can write to STDERR",
+      "evidence": "M2-1",
+      "sources": [
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "call4cloud (Rudy Ooms): Exit code and detection rules",
+          "url": "https://call4cloud.nl/win32app-exit-code-detection-rules/",
+          "dateChecked": "2026-10-15"
+        }
+      ]
+    },
+    {
+      "id": "T04b",
+      "title": "Detection script has no obvious STDOUT write",
+      "evidence": "M2-1",
+      "sources": [
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        }
+      ]
+    },
+    {
+      "id": "T05",
+      "title": "Product-code detection pinned to a version",
+      "evidence": "M2-4/M2-5",
+      "sources": [
+        {
+          "title": "Graph: win32LobAppProductCodeRule",
+          "url": "https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-win32lobappproductcoderule?view=graph-rest-beta",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Learn: App install error codes",
+          "url": "https://learn.microsoft.com/en-us/troubleshoot/mem/intune/app-management/app-install-error-codes",
+          "dateChecked": "2026-10-15"
+        }
+      ]
+    },
+    {
+      "id": "T06",
+      "title": "Detection rule hard-codes a 32-bit location",
+      "evidence": "M2-3",
+      "sources": [
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Graph: win32LobAppRegistryRule",
+          "url": "https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-win32lobappregistryrule?view=graph-rest-beta",
+          "dateChecked": "2026-10-15"
+        }
+      ]
+    },
+    {
+      "id": "T06b",
+      "title": "Detection rule uses 64-bit view (check installer bitness)",
+      "evidence": "M2-3",
+      "sources": [
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Graph: win32LobAppRegistryRule",
+          "url": "https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-win32lobappregistryrule?view=graph-rest-beta",
+          "dateChecked": "2026-10-15"
+        }
+      ]
+    },
+    {
+      "id": "T07",
+      "title": "User install context",
+      "evidence": "M5-4",
+      "sources": [
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        }
+      ]
+    },
+    {
+      "id": "T08",
+      "title": "Heuristic: large package with default timeout",
+      "evidence": "M5-5",
+      "sources": [
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        }
+      ]
+    },
+    {
+      "id": "T09",
+      "title": "1618 not mapped to Retry",
+      "evidence": "M5-1/M5-2",
+      "sources": [
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Learn: MsiExec error codes",
+          "url": "https://learn.microsoft.com/en-us/windows/win32/msi/error-codes",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Patch Tuesday blog (Liviu Barbat): Win32app retry interval",
+          "url": "https://patchtuesday.com/blog/tech-blog/win32app-retry-interval/",
+          "dateChecked": "2026-10-15"
+        }
+      ]
+    },
+    {
+      "id": "T09b",
+      "title": "Hard-reboot return codes",
+      "evidence": "M5-3",
+      "sources": [
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        }
+      ]
+    },
+    {
+      "id": "T10",
+      "title": "Dependency graph size",
+      "evidence": "M3-2",
+      "sources": [
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        }
+      ]
+    },
+    {
+      "id": "T11",
+      "title": "Supersedence chain length",
+      "evidence": "M3-3",
+      "sources": [
+        {
+          "title": "Learn: Win32 app supersedence",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/configure-win32-supersedence",
+          "dateChecked": "2026-10-15"
+        }
+      ]
+    },
+    {
+      "id": "T12",
+      "title": "Superseding app not assigned",
+      "evidence": "M3-1",
+      "sources": [
+        {
+          "title": "Learn: Win32 app supersedence",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/configure-win32-supersedence",
+          "dateChecked": "2026-10-15"
+        }
+      ]
+    },
+    {
+      "id": "T13",
+      "title": "Dependency on a superseded app (conflict)",
+      "evidence": "M3-4",
+      "sources": [
+        {
+          "title": "Learn: Win32 app supersedence",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/configure-win32-supersedence",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Microsoft Tech Community: supersedence conflict (MS Support case quoted)",
+          "url": "https://techcommunity.microsoft.com/discussions/microsoft-intune/supersedence-relationship-conflict-in-intune-deployment-of-any-applications/4219681",
+          "dateChecked": "2026-10-15"
+        }
+      ]
+    },
+    {
+      "id": "T14",
+      "title": "Supersedence auto-update enabled",
+      "evidence": "M3-5",
+      "sources": [
+        {
+          "title": "Learn: Win32 app supersedence",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/configure-win32-supersedence",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Graph: win32LobAppAutoUpdateSettings",
+          "url": "https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-win32lobappautoupdatesettings?view=graph-rest-beta",
+          "dateChecked": "2026-10-15"
+        }
+      ]
+    },
+    {
+      "id": "T15",
+      "title": "allowedArchitectures resets applicableArchitectures",
+      "evidence": "M3-8",
+      "sources": [
+        {
+          "title": "Graph: win32LobApp (beta)",
+          "url": "https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-win32lobapp?view=graph-rest-beta",
+          "dateChecked": "2026-10-15"
+        }
+      ]
+    },
+    {
+      "id": "T16",
+      "title": "Install summary shows failures",
+      "evidence": "-",
+      "sources": [
+        {
+          "title": "Graph: get mobileAppInstallSummary",
+          "url": "https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappinstallsummary-get?view=graph-rest-beta",
+          "dateChecked": "2026-10-15"
+        }
+      ]
+    },
+    {
+      "id": "T17",
+      "title": "Untargeted auto-install dependency",
+      "evidence": "M3-1",
+      "sources": [
+        {
+          "title": "Learn: Add and assign Win32 apps",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/add-win32",
+          "dateChecked": "2026-10-15"
+        },
+        {
+          "title": "Learn: Win32 app supersedence",
+          "url": "https://learn.microsoft.com/en-us/intune/app-management/deployment/configure-win32-supersedence",
+          "dateChecked": "2026-10-15"
+        }
+      ]
+    },
+    {
+      "id": "T19",
+      "title": "Intune Windows Agent enterprise app disabled",
+      "evidence": "M4-6",
+      "sources": [
+        {
+          "title": "Learn: Intune Management Extension",
+          "url": "https://learn.microsoft.com/en-us/intune/intune-service/apps/intune-management-extension",
+          "dateChecked": "2026-10-15"
+        }
+      ]
+    }
+  ],
+  "contextSignals": [
+    {
+      "pattern": "^exit:(0|1641|3010)$",
+      "meaning": "Installer returned a success code (Learn default return codes)."
+    },
+    {
+      "pattern": "^exit:success$",
+      "meaning": "Summary of a success exit code."
+    },
+    {
+      "pattern": "^detected:true:post$",
+      "meaning": "Detected after install: the healthy end state."
+    },
+    {
+      "pattern": "^detected:false:pre$",
+      "meaning": "Not detected before install, so IME goes on to install. Normal."
+    },
+    {
+      "pattern": "^detected:true:pre$",
+      "meaning": "Already detected before install, so IME skips the install. Normal for an installed app; if you expected a newer version, run again with -ExpectNewVersion (KC-002)."
+    },
+    {
+      "pattern": "^detected:false:post$",
+      "meaning": "Not detected after install. Becomes KC-001 when paired with a success exit code; otherwise read the exit code entry."
+    },
+    {
+      "pattern": "^enforcement:(1000|1003|2000|2009)$",
+      "meaning": "Success, install command received, in progress, or downloaded and waiting (community-decoded)."
+    },
+    {
+      "pattern": "^(policy|download|cache|state|grs)$",
+      "meaning": "Normal IME steps: policy received, content download, IMECache, state reporting, retry schedule check."
+    },
+    {
+      "pattern": "^enforcement:\\d+$",
+      "meaning": "Raw EnforcementState not decoded by the kit (only codes with two independent sources are decoded)."
+    },
+    {
+      "pattern": "^expect:new-version$",
+      "meaning": "You ran with -ExpectNewVersion."
+    }
+  ],
+  "linksCheckedOn": "2026-10-16"
+}

@@ -1,0 +1,1025 @@
+{
+  "schema_version": "1.0",
+  "kit": "ZakitPro Kit 1 Deployment Doctor",
+  "db_version": "1.3.0",
+  "generated": "2026-10-16",
+  "status_values": {
+    "documented": "Backed by a Microsoft Learn page",
+    "field-reported": "Published by a named field expert (blog, vendor write-up or incident relay), not by Microsoft docs; where only one source exists the guide names it",
+    "resolved": "Documented issue now listed as resolved; kept to explain old records"
+  },
+  "detection_values": {
+    "script": "A kit script raises a signal that detects this cause",
+    "reminder": "A script prints a reminder row for this cause, but doesn't detect it; check it yourself",
+    "manual": "No script signal; check it yourself"
+  },
+  "phase_values": {
+    "Enrollment": "Before ESP or Device Prep (registration, MDM enrollment)",
+    "DevicePrep": "Autopilot device preparation, the product (no ESP)",
+    "ESP-DevicePreparation": "Enrollment Status Page phase 1 (Autopilot v1)",
+    "ESP-DeviceSetup": "Enrollment Status Page phase 2",
+    "ESP-AccountSetup": "Enrollment Status Page phase 3",
+    "Report": "Intune reporting"
+  },
+  "causes": [
+    {
+      "id": "KC-001",
+      "module": "M1",
+      "evidence_ref": "M1-1",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "T_ESP_LOB_WIN32_MIX"
+      ],
+      "cause": "Matched known cause KC-001. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "ESP-DeviceSetup",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/troubleshooting-faq",
+        "https://learn.microsoft.com/en-us/intune/intune-service/enrollment/windows-enrollment-status"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-002",
+      "module": "M1",
+      "evidence_ref": "M1-1",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "T_ESP_OFFICE_C2R"
+      ],
+      "cause": "Matched known cause KC-002. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "ESP-DeviceSetup",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/troubleshooting-faq"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-003",
+      "module": "M1",
+      "evidence_ref": "M1-2",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "T_DP_STDUSER_ENTRA_LOCALADMIN"
+      ],
+      "cause": "Matched known cause KC-003. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "DevicePrep",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/known-issues",
+        "https://oofhours.com/2024/06/05/digging-into-windows-autopilot-v2/",
+        "https://call4cloud.nl/autopilot-device-preparation-flow-apv2/"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-004",
+      "module": "M1",
+      "evidence_ref": "M1-3",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [
+        "0x80180014"
+      ],
+      "signals": [
+        "T_PERSONAL_BLOCKED_NO_CORPID"
+      ],
+      "cause": "Matched known cause KC-004. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "Enrollment",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/troubleshooting-faq",
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/device-association/overview",
+        "https://oofhours.com/2024/06/06/windows-autopilot-v2-experience-some-surprises-including-updates/",
+        "https://call4cloud.nl/autopilot-device-preparation-flow-apv2/"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-005",
+      "module": "M1",
+      "evidence_ref": "M1-4",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [],
+      "cause": "Matched known cause KC-005. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "DevicePrep",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/known-issues",
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/whats-new"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "resolved",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "manual"
+    },
+    {
+      "id": "KC-006",
+      "module": "M1",
+      "evidence_ref": "M1-5",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [
+        "0x800705b4"
+      ],
+      "signals": [
+        "D_CI3033",
+        "D_IME_MISSING_CI3033",
+        "D_IME_AFFECTED_VERSION"
+      ],
+      "cause": "Matched known cause KC-006. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "ESP-DevicePreparation",
+      "source_urls": [
+        "https://patchmypc.com/blog/autopilot-0x800705b4-app-control-blocks-the-intune-management-extension/",
+        "https://blog.minerva-ia.com/en/blog/idx5d1s6"
+      ],
+      "date_checked": "2026-10-16",
+      "status": "field-reported",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-007",
+      "module": "M1",
+      "evidence_ref": "M1-6",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "T_MANUAL_POLICY_CONFLICT_REVIEW"
+      ],
+      "cause": "Matched known cause KC-007. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "ESP-DeviceSetup",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/troubleshooting-faq"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "reminder"
+    },
+    {
+      "id": "KC-008",
+      "module": "M1",
+      "evidence_ref": "M1-6",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "T_MANUAL_POLICY_CONFLICT_REVIEW"
+      ],
+      "cause": "Matched known cause KC-008. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "ESP-AccountSetup",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/troubleshooting-faq"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "reminder"
+    },
+    {
+      "id": "KC-009",
+      "module": "M1",
+      "evidence_ref": "M1-7",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "T_DEVICE_SCRIPTS_PRESENT",
+        "D_SCRIPT_TIMEOUT_GAP"
+      ],
+      "cause": "Matched known cause KC-009. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "ESP-DeviceSetup",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/intune/intune-service/apps/powershell-scripts",
+        "https://call4cloud.nl/autopilot-stuck-on-identifying-apps-esp/"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-010",
+      "module": "M1",
+      "evidence_ref": "M1-8",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "T_DP_APP_CAP",
+        "T_DP_SCRIPT_CAP"
+      ],
+      "cause": "Matched known cause KC-010. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "DevicePrep",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/whats-new",
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/faq",
+        "https://petervanderwoude.nl/post/understanding-enrollment-time-grouping/"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-011",
+      "module": "M2",
+      "evidence_ref": "M2-1",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "T_SP_MISSING"
+      ],
+      "cause": "Matched known cause KC-011. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "DevicePrep",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/tutorial/user-driven/entra-join-device-group",
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/known-issues"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-012",
+      "module": "M2",
+      "evidence_ref": "M2-1",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "T_SP_NAME_DIFFERENT"
+      ],
+      "cause": "Matched known cause KC-012. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "DevicePrep",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/tutorial/user-driven/entra-join-device-group"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-013",
+      "module": "M2",
+      "evidence_ref": "M2-2",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "T_DPGROUP_DYNAMIC",
+        "T_DPGROUP_SP_NOT_OWNER",
+        "T_DPGROUP_MISSING",
+        "T_DPGROUP_TARGET_INVALID"
+      ],
+      "cause": "Matched known cause KC-013. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "DevicePrep",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/known-issues"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-014",
+      "module": "M2",
+      "evidence_ref": "M2-5",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "T_DPGROUP_ROLEASSIGNABLE"
+      ],
+      "cause": "Matched known cause KC-014. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "DevicePrep",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/tutorial/user-driven/entra-join-device-group"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-015",
+      "module": "M2",
+      "evidence_ref": "M2-3",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "T_DPGROUP_SP_NOT_OWNER",
+        "T_SP_MISSING"
+      ],
+      "cause": "Matched known cause KC-015. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "DevicePrep",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/troubleshooting-faq",
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/known-issues"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-016",
+      "module": "M2",
+      "evidence_ref": "M2-4",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "T_RBAC_ETG_PERMISSION_NOT_FOUND"
+      ],
+      "cause": "Matched known cause KC-016. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "DevicePrep",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/requirements",
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/known-issues"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-017",
+      "module": "M2",
+      "evidence_ref": "M2-7",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "T_DPGROUP_NOT_IN_SCOPE"
+      ],
+      "cause": "Matched known cause KC-017. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "DevicePrep",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/intune/device-enrollment/setup-time-grouping",
+        "https://learn.microsoft.com/en-us/intune/fundamentals/role-based-access-control/scope-tags"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-018",
+      "module": "M2",
+      "evidence_ref": "M2-8",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "T_DPGROUP_SP_NOT_OWNER"
+      ],
+      "cause": "Matched known cause KC-018. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "DevicePrep",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/intune/device-enrollment/setup-time-grouping"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-019",
+      "module": "M2",
+      "evidence_ref": "M2-9",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [],
+      "cause": "Matched known cause KC-019. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "DevicePrep",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/tutorial/user-driven/entra-join-autopilot-policy"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "manual"
+    },
+    {
+      "id": "KC-020",
+      "module": "M3",
+      "evidence_ref": "M3-1",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "D_ESP_APP_ERROR"
+      ],
+      "cause": "Matched known cause KC-020. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "ESP-DeviceSetup",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/troubleshoot/mem/intune/device-enrollment/understand-troubleshoot-esp",
+        "https://intunestuff.com/2024/09/04/identify-failed-apps-during-an-autopilot-installation/"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-021",
+      "module": "M3",
+      "evidence_ref": "M3-2",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [
+        "0x800705b4"
+      ],
+      "signals": [
+        "D_IME_MISSING"
+      ],
+      "cause": "Matched known cause KC-021. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "ESP-DevicePreparation",
+      "source_urls": [
+        "https://oofhours.com/2019/08/21/why-does-preparing-your-device-for-mobile-management-take-longer-with-windows-10-1903/",
+        "https://call4cloud.nl/autopilot-timeout-0x800705b4/",
+        "https://patchmypc.com/blog/autopilot-0x800705b4-app-control-blocks-the-intune-management-extension/"
+      ],
+      "date_checked": "2026-10-16",
+      "status": "field-reported",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-022",
+      "module": "M3",
+      "evidence_ref": "M3-3",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "D_IME_LOG_ACTIVELY_REFUSED"
+      ],
+      "cause": "Matched known cause KC-022. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "ESP-DeviceSetup",
+      "source_urls": [
+        "https://www.niallbrady.com/2020/06/10/troubleshooting-application-deployment-failures-during-the-enrollment-status-page-for-windows-autopilot/",
+        "https://learn.microsoft.com/en-us/autopilot/troubleshooting-faq"
+      ],
+      "date_checked": "2026-10-16",
+      "status": "field-reported",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-023",
+      "module": "M3",
+      "evidence_ref": "M3-4",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [],
+      "cause": "Matched known cause KC-023. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "ESP-DevicePreparation",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/known-issues",
+        "https://call4cloud.nl/ready-for-attestation-windows-autopilot/",
+        "https://learn.microsoft.com/en-us/answers/questions/5759570/tpm-attestation-timed-out-during-autopilot"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "manual"
+    },
+    {
+      "id": "KC-024",
+      "module": "M4",
+      "evidence_ref": "M4-1",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "D_ESP_PRESENT_EXPECTED_DP"
+      ],
+      "cause": "Matched known cause KC-024. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "Enrollment",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/troubleshooting-faq",
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/compare",
+        "https://andrewstaylor.com/2025/01/09/migrating-devices-from-autopilot-to-autopilot-device-prep/"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-025",
+      "module": "M4",
+      "evidence_ref": "M4-3",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "T_DP_APP_NOT_ASSIGNED_TO_GROUP"
+      ],
+      "cause": "Matched known cause KC-025. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "DevicePrep",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/reporting-monitoring",
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/troubleshooting-faq"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-026",
+      "module": "M4",
+      "evidence_ref": "M4-4",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [],
+      "cause": "Matched known cause KC-026. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "Enrollment",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/device-association/overview",
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/troubleshooting-faq"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "manual"
+    },
+    {
+      "id": "KC-027",
+      "module": "M5",
+      "evidence_ref": "M5-1",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [
+        "0x80180014"
+      ],
+      "signals": [],
+      "cause": "Matched known cause KC-027. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "Enrollment",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/troubleshooting-faq",
+        "https://oofhours.com/2024/06/06/windows-autopilot-v2-experience-some-surprises-including-updates/"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "manual"
+    },
+    {
+      "id": "KC-028",
+      "module": "M5",
+      "evidence_ref": "M5-3",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [],
+      "cause": "Matched known cause KC-028. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "ESP-AccountSetup",
+      "source_urls": [
+        "https://support.nhs.net/2025/04/microsoft-365-alert-service-degradation-microsoft-intune-users-may-be-unable-to-install-user-targeted-apps-that-have-been-made-available-in-the-intune-company-portal/",
+        "https://www.idreams.ai/post/list-of-active-and-resolved-service-cases-by-microsoft-for-april-2026"
+      ],
+      "date_checked": "2026-10-16",
+      "status": "field-reported",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "manual"
+    },
+    {
+      "id": "KC-029",
+      "module": "M5",
+      "evidence_ref": "M5-4",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [],
+      "cause": "Matched known cause KC-029. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "Enrollment",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/requirements",
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/troubleshooting-faq"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "manual"
+    },
+    {
+      "id": "KC-030",
+      "module": "M5",
+      "evidence_ref": "M5-4",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [
+        "0x80004005"
+      ],
+      "signals": [],
+      "cause": "Matched known cause KC-030. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "ESP-DeviceSetup",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/known-issues"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "manual"
+    },
+    {
+      "id": "KC-031",
+      "module": "M5",
+      "evidence_ref": "M5-4",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [],
+      "cause": "Matched known cause KC-031. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "ESP-DeviceSetup",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/known-issues"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "manual"
+    },
+    {
+      "id": "KC-032",
+      "module": "M6",
+      "evidence_ref": "M6-8",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [
+        "0x801C03F3"
+      ],
+      "signals": [],
+      "cause": "Matched known cause KC-032. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "Enrollment",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/troubleshooting-faq",
+        "https://learn.microsoft.com/en-us/autopilot/known-issues",
+        "https://learn.microsoft.com/en-us/autopilot/windows-autopilot-reset"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "manual"
+    },
+    {
+      "id": "KC-033",
+      "module": "M3",
+      "evidence_ref": "M3-5",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "D_EVT_807"
+      ],
+      "cause": "Matched known cause KC-033. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "Enrollment",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/troubleshooting-faq"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-034",
+      "module": "M3",
+      "evidence_ref": "M3-5",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "D_EVT_809_815"
+      ],
+      "cause": "Matched known cause KC-034. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "Enrollment",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/troubleshooting-faq"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-035",
+      "module": "M3",
+      "evidence_ref": "M3-5",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "D_EVT_908"
+      ],
+      "cause": "Matched known cause KC-035. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "Enrollment",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/troubleshooting-faq"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-036",
+      "module": "M6",
+      "evidence_ref": "M6-6",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "D_APPWORKLOAD_ESPPHASE"
+      ],
+      "cause": "Matched known cause KC-036. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "ESP-AccountSetup",
+      "source_urls": [
+        "https://lethsinspire.com/application-control-for-business-can-break-autopilot-user-esp-in-specific/",
+        "https://patchmypc.com/blog/autopilot-0x800705b4-app-control-blocks-the-intune-management-extension/",
+        "https://blog.minerva-ia.com/en/blog/idx5d1s6"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "field-reported",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-037",
+      "module": "M3",
+      "evidence_ref": "M3-7",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [],
+      "cause": "Matched known cause KC-037. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "Report",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/known-issues"
+      ],
+      "date_checked": "2026-10-15",
+      "status": "resolved",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "manual"
+    },
+    {
+      "id": "KC-038",
+      "module": "M4",
+      "evidence_ref": "M4-2",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "D_DP_FOOTPRINT"
+      ],
+      "cause": "Matched known cause KC-038. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "DevicePrep",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/troubleshooting-faq",
+        "https://patchmypc.com/blog/ultimate-guide-troubleshoot-windows-autopilot/"
+      ],
+      "date_checked": "2026-10-16",
+      "status": "field-reported",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-039",
+      "module": "M4",
+      "evidence_ref": "M4-2",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "D_DP_BOOTSTRAPPER_ERROR"
+      ],
+      "cause": "Matched known cause KC-039. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "DevicePrep",
+      "source_urls": [
+        "https://patchmypc.com/blog/ultimate-guide-troubleshoot-windows-autopilot/",
+        "https://oofhours.com/2025/05/01/next-generation-autopilot-troubleshooting/"
+      ],
+      "date_checked": "2026-10-16",
+      "status": "field-reported",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-040",
+      "module": "M1",
+      "evidence_ref": "M1-5",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "D_CI3033_OTHER"
+      ],
+      "cause": "Matched known cause KC-040. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "ESP-DevicePreparation",
+      "source_urls": [
+        "https://patchmypc.com/blog/autopilot-0x800705b4-app-control-blocks-the-intune-management-extension/",
+        "https://blog.minerva-ia.com/en/blog/idx5d1s6"
+      ],
+      "date_checked": "2026-10-16",
+      "status": "field-reported",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-041",
+      "module": "M4",
+      "evidence_ref": "M4-2",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "D_DP_PROGRESS_FAILURE"
+      ],
+      "cause": "Matched known cause KC-041. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "DevicePrep",
+      "source_urls": [
+        "https://patchmypc.com/blog/ultimate-guide-troubleshoot-windows-autopilot/",
+        "https://oofhours.com/2025/05/01/next-generation-autopilot-troubleshooting/",
+        "https://learn.microsoft.com/en-us/windows/client-management/mdm/devicepreparation-csp"
+      ],
+      "date_checked": "2026-10-16",
+      "status": "field-reported",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-042",
+      "module": "M3",
+      "evidence_ref": "M3-1",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [],
+      "cause": "Matched known cause KC-042. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "ESP-AccountSetup",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/intune/intune-service/enrollment/windows-enrollment-status"
+      ],
+      "date_checked": "2026-10-16",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "manual"
+    },
+    {
+      "id": "KC-043",
+      "module": "M3",
+      "evidence_ref": "M3-1",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [],
+      "cause": "Matched known cause KC-043. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "ESP-DeviceSetup",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/intune/intune-service/enrollment/windows-enrollment-status"
+      ],
+      "date_checked": "2026-10-16",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "manual"
+    },
+    {
+      "id": "KC-044",
+      "module": "M3",
+      "evidence_ref": "M3-1",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [],
+      "cause": "Matched known cause KC-044. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "ESP-DeviceSetup",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/intune/intune-service/enrollment/windows-enrollment-status"
+      ],
+      "date_checked": "2026-10-16",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "manual"
+    },
+    {
+      "id": "KC-045",
+      "module": "M1",
+      "evidence_ref": "M1-3",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [
+        "0x80180014"
+      ],
+      "signals": [
+        "T_WINDOWS_MDM_BLOCKED"
+      ],
+      "cause": "Matched known cause KC-045. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "Enrollment",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/troubleshooting-faq",
+        "https://learn.microsoft.com/en-us/graph/api/resources/intune-onboarding-deviceenrollmentplatformrestriction?view=graph-rest-1.0"
+      ],
+      "date_checked": "2026-10-16",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    },
+    {
+      "id": "KC-046",
+      "module": "M4",
+      "evidence_ref": "M4-2",
+      "symptom": "Removed from the beta scripts repo; see the full kit.",
+      "error_codes": [],
+      "signals": [
+        "D_DP_NO_FAILURE_FOUND"
+      ],
+      "cause": "Matched known cause KC-046. Removed from the beta scripts repo; see the full kit.",
+      "fix": "Removed from the beta scripts repo; see the full kit.",
+      "rollback": "Removed from the beta scripts repo; see the full kit.",
+      "phase": "DevicePrep",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/autopilot/device-preparation/tutorial/user-driven/entra-join-autopilot-policy"
+      ],
+      "date_checked": "2026-10-16",
+      "status": "documented",
+      "notes": "Removed from the beta scripts repo; see the full kit.",
+      "detection": "script"
+    }
+  ],
+  "note": "Beta signal map: IDs, signals, status and source links only. Explanatory and fix text removed."
+}
