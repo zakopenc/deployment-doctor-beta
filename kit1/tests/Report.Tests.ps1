@@ -6,9 +6,30 @@ BeforeAll {
     $script:Device = Join-Path -Path $Root -ChildPath 'scripts/Invoke-DeviceDiagnostic.ps1'
     $script:Db = Join-Path -Path $Root -ChildPath 'data/known-causes.json'
     Import-Module Microsoft.Graph.Authentication
+    function Test-ZkDashboard {
+        param([string]$Html)
+        # Filters and search exist, but are hidden until JS runs; with JS disabled the full table is visible.
+        $Html | Should -Match 'id="zk-q"'
+        $Html | Should -Match 'id="zk-sev"'
+        $Html | Should -Match 'id="zk-st"'
+        $Html | Should -Match 'id="zk-filters" class="filters hidden-js"'
+        $Html | Should -Not -Match '<tr[^>]*\shidden'
+        $Html | Should -Not -Match '(?i)<noscript'
+        $Html | Should -Match 'Content-Security-Policy'
+        $Html | Should -Match 'prefers-color-scheme:dark'
+        $Html | Should -Match 'id="zk-theme"'
+        $Html | Should -Match '@media print'
+        $Html | Should -Match 'Health score = round'
+        $Html | Should -Match '<details><summary>Show evidence</summary>'
+        $Html | Should -Match 'class="print-ev"'
+        $noJs = [regex]::Replace($Html, '(?s)<script>.*?</script>', '')
+        ([regex]::Matches($noJs, '<tr data-sev=')).Count | Should -BeGreaterThan 0
+        ([regex]::Matches($noJs, '<tr data-sev=')).Count | Should -Be ([regex]::Matches($Html, '<tr data-sev=')).Count
+    }
     function Test-ZkOnlyNextLinkIsExternal {
         param([string]$Html)
-        $Html | Should -Not -Match '(?i)<script'
+        $Html | Should -Not -Match '(?i)<script[^>]*\bsrc'
+        $Html | Should -Not -Match '(?i)<iframe|<object|<embed|fetch\(|XMLHttpRequest|navigator\.sendBeacon|new WebSocket'
         $Html | Should -Not -Match '(?i)<link\b'
         $Html | Should -Not -Match '(?i)<img\b'
         $Html | Should -Not -Match '(?i)@import|url\('
@@ -42,6 +63,7 @@ Describe 'Kit 1 tenant HTML report' {
         $h = Get-Content -LiteralPath $f[0].FullName -Raw
         $h | Should -Match '@media print'
         Test-ZkOnlyNextLinkIsExternal -Html $h
+        Test-ZkDashboard -Html $h
         $h | Should -Match 'data-status="red"'
         $h | Should -Match 'data-status="green"'
         $h | Should -Match 'class="next"'
@@ -76,6 +98,7 @@ Describe 'Kit 1 device HTML report' {
         $h = Get-Content -LiteralPath $f[0].FullName -Raw
         $h | Should -Match '@media print'
         Test-ZkOnlyNextLinkIsExternal -Html $h
+        Test-ZkDashboard -Html $h
         $h | Should -Match 'data-status="(red|yellow)"'
         $h | Should -Match '&lt;Contoso &amp; Co&gt;'
     }

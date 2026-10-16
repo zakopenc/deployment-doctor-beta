@@ -7,10 +7,31 @@ BeforeAll {
     . (Join-Path -Path $script:Root -ChildPath 'Invoke-DeviceDiagnostic.ps1')
     $script:Db = Get-Content -LiteralPath (Join-Path -Path $script:Root -ChildPath 'known-causes.json') -Raw | ConvertFrom-Json
     $script:Evil = '<script>alert("x")</script><img src="https://evil.example/x.png">'
+    function Test-ZkDashboard {
+        param([string]$Html)
+        # Filters and search exist, but are hidden until JS runs; with JS disabled the full table is visible.
+        $Html | Should -Match 'id="zk-q"'
+        $Html | Should -Match 'id="zk-sev"'
+        $Html | Should -Match 'id="zk-st"'
+        $Html | Should -Match 'id="zk-filters" class="filters hidden-js"'
+        $Html | Should -Not -Match '<tr[^>]*\shidden'
+        $Html | Should -Not -Match '(?i)<noscript'
+        $Html | Should -Match 'Content-Security-Policy'
+        $Html | Should -Match 'prefers-color-scheme:dark'
+        $Html | Should -Match 'id="zk-theme"'
+        $Html | Should -Match '@media print'
+        $Html | Should -Match 'Health score = round'
+        $Html | Should -Match '<details><summary>Show evidence</summary>'
+        $Html | Should -Match 'class="print-ev"'
+        $noJs = [regex]::Replace($Html, '(?s)<script>.*?</script>', '')
+        ([regex]::Matches($noJs, '<tr data-sev=')).Count | Should -BeGreaterThan 0
+        ([regex]::Matches($noJs, '<tr data-sev=')).Count | Should -Be ([regex]::Matches($Html, '<tr data-sev=')).Count
+    }
     function Test-ZkOnlyNextLinkIsExternal {
         param([string]$Html)
         # Any element that could load or point to a remote resource must not exist, except the what-next anchors.
-        $Html | Should -Not -Match '(?i)<script'
+        $Html | Should -Not -Match '(?i)<script[^>]*\bsrc'
+        $Html | Should -Not -Match '(?i)<iframe|<object|<embed|fetch\(|XMLHttpRequest|navigator\.sendBeacon|new WebSocket'
         $Html | Should -Not -Match '(?i)<link\b'
         $Html | Should -Not -Match '(?i)<img\b'
         $Html | Should -Not -Match '(?i)@import|url\('
@@ -50,6 +71,7 @@ Describe 'Kit 2 tenant HTML report' {
         $script:H | Should -Match '@media print'
     }
     It 'has no remote script/link/img and only what-next anchors point outside' { Test-ZkOnlyNextLinkIsExternal -Html $script:H }
+    It 'has filters, theme toggle, print CSS and renders without JS' { Test-ZkDashboard -Html $script:H }
     It 'renders red, yellow and green statuses' {
         foreach ($s in 'red', 'yellow', 'green') { $script:H | Should -Match "data-status=`"$s`"" }
     }
@@ -71,11 +93,12 @@ Describe 'Kit 2 device HTML report' {
     It 'creates the HTML file with print styles' { Test-Path -LiteralPath $script:F.Html | Should -BeTrue; $script:H | Should -Match '@media print' }
     It 'has no remote script/link/img and drops non-Learn source links' {
         Test-ZkOnlyNextLinkIsExternal -Html $script:H
+        Test-ZkDashboard -Html $script:H
         $script:H | Should -Not -Match 'blog\.example'
-        $script:H | Should -Match 'class="next" href="https://learn\.microsoft\.com/en-us/intune/x"'
+        $script:H | Should -Match '<a class="next" href="https://learn\.microsoft\.com/en-us/intune/x"'
     }
     It 'renders red and green statuses' { $script:H | Should -Match 'data-status="red"'; $script:H | Should -Match 'data-status="green"' }
-    It 'HTML-escapes evidence and log messages' { $script:H | Should -Match '&lt;script&gt;'; $script:H | Should -Not -Match '<script>' }
+    It 'HTML-escapes evidence and log messages' { $script:H | Should -Match '&lt;script&gt;'; $script:H | Should -Not -Match '<script>alert' }
     It '-NoHtml writes JSON only' {
         $f = Export-ZkDeviceReport -Report $script:DeviceReport -OutputPath (Join-Path $TestDrive 'dn') -NoHtml
         $f.Html | Should -BeNullOrEmpty

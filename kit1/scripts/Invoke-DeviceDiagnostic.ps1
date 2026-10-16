@@ -453,14 +453,12 @@ foreach ($v in $verdicts) {
 }
 Write-Information -MessageData "`nBefore any reset, collect logs (copy the CAB off the device):`n  $collectMd`n  $collect`n  Pre-provisioning/self-deploying only: $collectTpm`nAlso check Intune for an auto-collected diagnostics bundle first." -InformationAction Continue
 
-$script:ZkReportCss = 'body{font-family:Inter,''Segoe UI'',Arial,sans-serif;font-size:13px;margin:24px;color:#060f30;background:#ffffff}h1{color:#060f30;margin-bottom:4px}h2{color:#263d76;border-bottom:2px solid #eef6ff;padding-bottom:4px}h3{color:#263d76}.meta{color:#4b5563}.warnbox{background:#eef6ff;border-left:4px solid #263d76;padding:8px 12px;margin:12px 0}table{border-collapse:collapse;width:100%;margin:8px 0 18px}th{background:#060f30;color:#ffffff;text-align:left;padding:6px}td{padding:6px;border-bottom:1px solid #e5e7eb;vertical-align:top;word-break:break-word}code{font-family:''JetBrains Mono'',Consolas,monospace;background:#eef6ff;padding:1px 3px;word-break:break-all}.st{display:inline-block;border-radius:9999px;padding:2px 10px;font-size:11px;font-weight:700;white-space:nowrap}.st-green{background:#dcfce7;color:#166534}.st-yellow{background:#fef9c3;color:#854d0e}.st-red{background:#fee2e2;color:#991b1b}.st-grey{background:#f3f4f6;color:#374151}a{color:#0369a1}a.next{font-weight:600}.summary span{margin-right:12px}@media print{body{margin:0;font-size:11px}a{color:#060f30;text-decoration:underline}a.next:after{content:'' ('' attr(href) '')'';font-weight:400;word-break:break-all}th{background:#ffffff !important;color:#060f30 !important;border-bottom:2px solid #060f30}tr{page-break-inside:avoid}.st{border:1px solid #374151}}'
-
 function ConvertTo-ZkReportStatus {
     <#
     .SYNOPSIS
-        Maps a result or severity word to a report status colour (green, yellow, red or grey).
+        Maps a result, severity or confidence word to a report colour: red, yellow, green or grey.
     .PARAMETER Value
-        Result/severity text, for example Pass, Warn, Fail, High, Medium, Low, Info, NotChecked.
+        For example Pass, Warn, Fail, High, Medium, Low, Info, NotChecked.
     .EXAMPLE
         ConvertTo-ZkReportStatus -Value 'Fail'
     .EXAMPLE
@@ -479,34 +477,14 @@ function ConvertTo-ZkReportStatus {
     }
 }
 
-function Get-ZkReportBadge {
-    <#
-    .SYNOPSIS
-        Returns an HTML status pill with a text label (colour is never the only signal).
-    .PARAMETER Value
-        Result/severity text shown on the pill.
-    .EXAMPLE
-        Get-ZkReportBadge -Value 'Pass'
-    .EXAMPLE
-        Get-ZkReportBadge -Value 'High'
-    .OUTPUTS
-        System.String
-    #>
-    [CmdletBinding()]
-    [OutputType([string])]
-    param([Parameter()][AllowEmptyString()][string]$Value)
-    $s = ConvertTo-ZkReportStatus -Value $Value
-    '<span class="st st-{0}" data-status="{0}">{1}</span>' -f $s, [System.Net.WebUtility]::HtmlEncode($Value)
-}
-
 function Get-ZkNextStepLink {
     <#
     .SYNOPSIS
-        Builds the 'what to do next' anchor: the first Microsoft Learn URL, else the KC code text.
+        Builds the 'Next step' control: a button to the first Microsoft Learn URL, else the KC/check code.
     .PARAMETER Url
-        Candidate source URLs.
+        Candidate source URLs. Only https://learn.microsoft.com/ links are used.
     .PARAMETER Code
-        Known-cause or check code, used when no Learn URL exists.
+        Known-cause or check code shown when no Learn URL exists.
     .EXAMPLE
         Get-ZkNextStepLink -Url 'https://learn.microsoft.com/x' -Code 'KC-001'
     .EXAMPLE
@@ -518,9 +496,121 @@ function Get-ZkNextStepLink {
     [OutputType([string])]
     param([Parameter()][string[]]$Url, [Parameter()][string]$Code)
     $learn = @($Url | Where-Object { $_ -match '^https://learn\.microsoft\.com/' }) | Select-Object -First 1
-    if ($learn) { return '<a class="next" href="{0}">Microsoft Learn: what to do next</a>' -f [System.Net.WebUtility]::HtmlEncode($learn) }
-    if ($Code) { return '<span class="next">See {0} in the full kit</span>' -f [System.Net.WebUtility]::HtmlEncode($Code) }
-    return '<span class="next">Review the evidence</span>'
+    if ($learn) { return '<a class="next" href="' + [System.Net.WebUtility]::HtmlEncode($learn) + '" rel="noopener noreferrer">Next step</a>' }
+    if ($Code) { return '<span class="next next-code" title="See this code in the full kit">' + [System.Net.WebUtility]::HtmlEncode($Code) + '</span>' }
+    return '<span class="next next-code">Review evidence</span>'
+}
+
+function ConvertTo-ZkDashboardHtml {
+    <#
+    .SYNOPSIS
+        Renders a self-contained HTML dashboard (inline CSS and vanilla JS, no external resources).
+    .DESCRIPTION
+        Each finding needs Status, Scope, Check, Finding, Evidence and NextHtml (from Get-ZkNextStepLink).
+        All text is HTML-escaped here; ExtraHtml must already be escaped by the caller.
+        The table is fully visible without JavaScript; JS only adds filtering, search and the theme toggle.
+    .PARAMETER Title
+        Page heading.
+    .PARAMETER Subtitle
+        Plain-text line under the heading.
+    .PARAMETER Finding
+        Finding objects.
+    .PARAMETER ExtraHtml
+        Pre-escaped HTML appended after the findings table.
+    .EXAMPLE
+        ConvertTo-ZkDashboardHtml -Title 'Report' -Subtitle 'Sample' -Finding $rows
+    .EXAMPLE
+        ConvertTo-ZkDashboardHtml -Title 'Report' -Subtitle 'Sample' -Finding @() -ExtraHtml '<p>x</p>'
+    .OUTPUTS
+        System.String
+    #>
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory)][string]$Title,
+        [Parameter()][string]$Subtitle,
+        [Parameter()][AllowEmptyCollection()][object[]]$Finding = @(),
+        [Parameter()][string]$ExtraHtml = ''
+    )
+    $enc = { param($x) [System.Net.WebUtility]::HtmlEncode([string]$x) }
+    $label = @{ red = 'Critical'; yellow = 'Warning'; green = 'Passed'; grey = 'Info' }
+    $count = @{ red = 0; yellow = 0; green = 0; grey = 0 }
+    $statuses = New-Object -TypeName System.Collections.Generic.List[string]
+    $rows = New-Object -TypeName System.Text.StringBuilder
+    foreach ($f in @($Finding)) {
+        $c = ConvertTo-ZkReportStatus -Value ([string]$f.Status)
+        $count[$c]++
+        $st = [string]$f.Status
+        if (-not $statuses.Contains($st)) { $statuses.Add($st) }
+        $ev = & $enc $f.Evidence
+        $evCell = if ([string]::IsNullOrWhiteSpace([string]$f.Evidence)) { '<span class="muted">None</span>' } else { '<details><summary>Show evidence</summary><pre>' + $ev + '</pre></details><pre class="print-ev">' + $ev + '</pre>' }
+        [void]$rows.Append('<tr data-sev="' + $c + '" data-st="' + (& $enc $st) + '"><td><span class="st st-' + $c + '" data-status="' + $c + '">' + $label[$c] + '</span></td><td>' + (& $enc $st) + '</td><td>' + (& $enc $f.Scope) + '</td><td>' + (& $enc $f.Check) + '</td><td>' + (& $enc $f.Finding) + '</td><td>' + $evCell + '</td><td>' + $f.NextHtml + '</td></tr>' + "`n")
+    }
+    if (@($Finding).Count -eq 0) { [void]$rows.Append('<tr><td colspan="7" class="muted">No checks produced output.</td></tr>') }
+    $scored = $count.red + $count.yellow + $count.green
+    $score = if ($scored -gt 0) { [int][Math]::Round(100 * ($count.green + 0.5 * $count.yellow) / $scored) } else { 100 }
+    $scoreClass = if ($score -ge 85) { 'green' } elseif ($score -ge 60) { 'yellow' } else { 'red' }
+    $stOptions = ($statuses | Sort-Object | ForEach-Object { '<option value="' + (& $enc $_) + '">' + (& $enc $_) + '</option>' }) -join ''
+    $css = @'
+:root{--bg:#ffffff;--surface:#eef6ff;--card:#ffffff;--text:#060f30;--muted:#4b5563;--secondary:#263d76;--border:#dbe3f0;--link:#0369a1;--btn:#0369a1;--btn-text:#ffffff;
+--red-bg:#fee2e2;--red-fg:#991b1b;--yellow-bg:#fef9c3;--yellow-fg:#854d0e;--green-bg:#dcfce7;--green-fg:#166534;--grey-bg:#f3f4f6;--grey-fg:#374151;--head:#060f30;--head-text:#ffffff;color-scheme:light}
+:root[data-theme=dark]{--bg:#060f30;--surface:#1a2752;--card:#0d1940;--text:#f4f7ff;--muted:#c6d9ff;--secondary:#c6d9ff;--border:#263d76;--link:#7dd3fc;--btn:#0ea5e9;--btn-text:#060f30;
+--red-bg:#7f1d1d;--red-fg:#fee2e2;--yellow-bg:#713f12;--yellow-fg:#fef9c3;--green-bg:#14532d;--green-fg:#dcfce7;--grey-bg:#263d76;--grey-fg:#f4f7ff;--head:#1a2752;--head-text:#f4f7ff;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#060f30;--surface:#1a2752;--card:#0d1940;--text:#f4f7ff;--muted:#c6d9ff;--secondary:#c6d9ff;--border:#263d76;--link:#7dd3fc;--btn:#0ea5e9;--btn-text:#060f30;
+--red-bg:#7f1d1d;--red-fg:#fee2e2;--yellow-bg:#713f12;--yellow-fg:#fef9c3;--green-bg:#14532d;--green-fg:#dcfce7;--grey-bg:#263d76;--grey-fg:#f4f7ff;--head:#1a2752;--head-text:#f4f7ff;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+.wrap{max-width:1280px;margin:0 auto;padding:24px}header.top{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;margin-bottom:16px}
+.brand{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--secondary);font-weight:700}h1{margin:2px 0 4px;font-size:24px}h2{font-size:17px;margin:28px 0 10px;color:var(--secondary)}h3{font-size:15px;color:var(--secondary)}
+.muted,.meta{color:var(--muted)}.meta{font-size:13px}.banner{background:var(--surface);border-left:4px solid var(--btn);border-radius:8px;padding:10px 14px;margin:0 0 18px;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;box-shadow:0 1px 2px rgba(6,15,48,.06)}
+.card .k{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}.card .v{font-size:28px;font-weight:700;margin-top:2px}.card.red{border-top:4px solid var(--red-fg)}.card.yellow{border-top:4px solid var(--yellow-fg)}.card.green{border-top:4px solid var(--green-fg)}.card.grey{border-top:4px solid var(--grey-fg)}
+.score{display:flex;align-items:center;gap:14px}.ring{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;border:6px solid var(--border)}.ring.green{border-color:var(--green-fg)}.ring.yellow{border-color:var(--yellow-fg)}.ring.red{border-color:var(--red-fg)}
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:end;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px}.filters label{display:flex;flex-direction:column;font-size:12px;color:var(--muted);gap:4px}
+.filters input,.filters select{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px;min-width:170px}
+button.tg{font:inherit;cursor:pointer;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:9999px;padding:6px 14px}
+.tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--card)}table{border-collapse:collapse;width:100%}th{background:var(--head);color:var(--head-text);text-align:left;padding:9px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0}
+td{padding:9px 10px;border-top:1px solid var(--border);vertical-align:top;word-break:break-word}tbody tr:hover{background:var(--surface)}
+.st{display:inline-block;border-radius:9999px;padding:2px 10px;font-size:12px;font-weight:700;white-space:nowrap}.st-red{background:var(--red-bg);color:var(--red-fg)}.st-yellow{background:var(--yellow-bg);color:var(--yellow-fg)}.st-green{background:var(--green-bg);color:var(--green-fg)}.st-grey{background:var(--grey-bg);color:var(--grey-fg)}
+details summary{cursor:pointer;color:var(--link);font-weight:600}pre{white-space:pre-wrap;word-break:break-word;margin:6px 0 0;font:12px/1.5 ui-monospace,"Cascadia Mono",Consolas,monospace;background:var(--surface);padding:8px;border-radius:6px}.print-ev{display:none}
+a{color:var(--link)}a.next{display:inline-block;background:var(--btn);color:var(--btn-text);text-decoration:none;font-weight:700;border-radius:8px;padding:6px 12px;white-space:nowrap}a.next:focus,button.tg:focus,.filters input:focus,.filters select:focus{outline:3px solid #47c0f8;outline-offset:2px}
+.next-code{display:inline-block;border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-weight:700;white-space:nowrap}code{font-family:ui-monospace,Consolas,monospace;background:var(--surface);padding:1px 4px;border-radius:4px}
+footer{margin-top:28px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:12px}.hidden-js{display:none}
+@media print{:root,:root[data-theme=dark]{--bg:#ffffff;--surface:#f3f4f6;--card:#ffffff;--text:#000000;--muted:#374151;--secondary:#060f30;--border:#9ca3af;--link:#000000;--head:#ffffff;--head-text:#000000;color-scheme:light}
+.filters,button.tg,details{display:none !important}.print-ev{display:block}.wrap{max-width:none;padding:0}th{position:static;border-bottom:2px solid #000}tr{page-break-inside:avoid}.st{border:1px solid #000}
+a.next{background:none;color:#000;border:1px solid #000}a.next:after{content:" (" attr(href) ")";font-weight:400;word-break:break-all}.card{box-shadow:none}tbody tr[hidden]{display:table-row !important}}
+'@
+    $js = @'
+(function(){var d=document,r=d.documentElement;
+function setT(t){r.setAttribute("data-theme",t);try{window.localStorage.setItem("zk-theme",t)}catch(e){}}
+try{var s=window.localStorage.getItem("zk-theme");if(s==="dark"||s==="light"){r.setAttribute("data-theme",s)}}catch(e){}
+var f=d.getElementById("zk-filters"),b=d.getElementById("zk-theme");if(f){f.classList.remove("hidden-js")}if(b){b.classList.remove("hidden-js");
+b.addEventListener("click",function(){var cur=r.getAttribute("data-theme");if(!cur){cur=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light"}setT(cur==="dark"?"light":"dark")})}
+var q=d.getElementById("zk-q"),sv=d.getElementById("zk-sev"),st=d.getElementById("zk-st"),n=d.getElementById("zk-count"),rows=d.querySelectorAll("#zk-findings tbody tr[data-sev]");
+function apply(){var t=(q.value||"").toLowerCase(),a=sv.value,b2=st.value,v=0;for(var i=0;i<rows.length;i++){var x=rows[i],ok=(!a||x.getAttribute("data-sev")===a)&&(!b2||x.getAttribute("data-st")===b2)&&(!t||x.textContent.toLowerCase().indexOf(t)>=0);x.hidden=!ok;if(ok){v++}}if(n){n.textContent=v+" of "+rows.length+" shown"}}
+if(q&&sv&&st){q.addEventListener("input",apply);sv.addEventListener("change",apply);st.addEventListener("change",apply);apply()}
+window.addEventListener("beforeprint",function(){for(var i=0;i<rows.length;i++){rows[i].hidden=false}});
+})();
+'@
+    $sb = New-Object -TypeName System.Text.StringBuilder
+    [void]$sb.Append('<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">')
+    [void]$sb.Append('<meta http-equiv="Content-Security-Policy" content="default-src ''none''; style-src ''unsafe-inline''; script-src ''unsafe-inline''; img-src data:; base-uri ''none''; form-action ''none''">')
+    [void]$sb.Append('<meta name="referrer" content="no-referrer"><title>' + (& $enc $Title) + '</title><style>' + $css + '</style></head><body><div class="wrap">')
+    [void]$sb.Append('<header class="top"><div><div class="brand">ZakitPro Deployment Doctor</div><h1>' + (& $enc $Title) + '</h1><div class="meta">' + (& $enc $Subtitle) + '</div></div>')
+    [void]$sb.Append('<button type="button" id="zk-theme" class="tg hidden-js" aria-label="Toggle dark or light theme">Toggle theme</button></header>')
+    [void]$sb.Append('<div class="banner"><b>Read-only, local report.</b> Not tested against a live tenant. Test in non-production first. This file makes no network requests.</div>')
+    [void]$sb.Append('<section class="grid" aria-label="Summary"><div class="card"><div class="score"><div class="ring ' + $scoreClass + '" aria-label="Health score">' + $score + '</div><div><div class="k">Health score</div><div class="muted">out of 100</div></div></div></div>')
+    foreach ($k in 'red', 'yellow', 'green', 'grey') { [void]$sb.Append('<div class="card ' + $k + '"><div class="k">' + $label[$k] + '</div><div class="v">' + $count[$k] + '</div></div>') }
+    [void]$sb.Append('</section><h2>Findings</h2>')
+    [void]$sb.Append('<div id="zk-filters" class="filters hidden-js" role="search"><label>Search<input id="zk-q" type="search" placeholder="Filter by any text"></label>')
+    [void]$sb.Append('<label>Severity<select id="zk-sev"><option value="">All</option><option value="red">Critical</option><option value="yellow">Warning</option><option value="green">Passed</option><option value="grey">Info</option></select></label>')
+    [void]$sb.Append('<label>Status<select id="zk-st"><option value="">All</option>' + $stOptions + '</select></label><span id="zk-count" class="muted" aria-live="polite"></span></div>')
+    [void]$sb.Append('<div class="tablewrap"><table id="zk-findings"><thead><tr><th>Severity</th><th>Status</th><th>Scope</th><th>Check</th><th>Finding</th><th>Evidence</th><th>Next step</th></tr></thead><tbody>')
+    [void]$sb.Append($rows.ToString())
+    [void]$sb.Append('</tbody></table></div>')
+    [void]$sb.Append($ExtraHtml)
+    [void]$sb.Append('<footer>Health score = round(100 x (Passed + 0.5 x Warning) / (Passed + Warning + Critical)); Info and not-checked rows are excluded, and the score is 100 when nothing was scored. It summarises this run only and is not a security rating. Generated locally by a read-only script; no data leaves this file.</footer>')
+    [void]$sb.Append('</div><script>' + $js + '</script></body></html>')
+    $sb.ToString()
 }
 
 # ------------------------------------------------------------------ reports
@@ -539,26 +629,20 @@ $allCauseIds = @($verdicts | ForEach-Object { $_.KnownCauseIds })
     } | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $jsonFile -Encoding UTF8
     if (-not $NoHtml) {
         $enc = { param($s) [System.Net.WebUtility]::HtmlEncode([string]$s) }
-        $vRows = foreach ($v in $verdicts) {
-            $urls = @(); foreach ($cid in $v.KnownCauseIds) { $c = $knownCauses | Where-Object { $_.id -eq $cid } | Select-Object -First 1; $urls += @($c.source_urls) }
-            $next = Get-ZkNextStepLink -Url $urls -Code ($v.KnownCauseIds -join ', ')
-            "<tr><td>$(Get-ZkReportBadge -Value $v.Severity)</td><td>$(& $enc $v.Signal)</td><td>$(& $enc $v.Finding)</td><td>$(& $enc ($v.KnownCauseIds -join ', '))</td><td>$next</td></tr>"
+        $dash = foreach ($v in $verdicts) {
+            $urls = @(); $why = @()
+            foreach ($cid in @($v.KnownCauseIds)) {
+                $c = $knownCauses | Where-Object { $_.id -eq $cid } | Select-Object -First 1
+                if ($c) { $urls += @($c.source_urls); $why += ('{0}: {1} Fix: {2}' -f $cid, $c.cause, $c.fix) }
+            }
+            [pscustomobject]@{ Status = $v.Severity; Scope = 'Device'; Check = $v.Signal; Finding = $v.Finding; Evidence = ((@("Signal: $($v.Signal)") + $why) -join "`n"); NextHtml = (Get-ZkNextStepLink -Url $urls -Code (@($v.KnownCauseIds) -join ', ')) }
         }
-        if (@($verdicts).Count -eq 0) { $vRows = "<tr><td>$(Get-ZkReportBadge -Value 'Pass')</td><td></td><td>No known-cause signals found.</td><td></td><td><span class=`"next`">Keep the logs if the problem returns</span></td></tr>" }
+        if (@($verdicts).Count -eq 0) { $dash = @([pscustomobject]@{ Status = 'Pass'; Scope = 'Device'; Check = 'Known-cause signals'; Finding = 'No known-cause signals found.'; Evidence = ''; NextHtml = '<span class="next next-code">Keep the logs</span>' }) }
         $tRows = foreach ($t in $ordered) { $ph = if ($t.Phase -eq 'Unknown') { 'Context (no time)' } else { $t.Phase }; "<tr><td>$(& $enc $ph)</td><td>$(& $enc $t.Time)</td><td>$(& $enc $t.Source)</td><td>$(& $enc $t.Message)</td></tr>" }
+        $extra = "<h2>Collect before reset</h2><p><code>$(& $enc $collectMd)</code><br><code>$(& $enc $collect)</code><br><code>$(& $enc $collectTpm)</code> (pre-provisioning/self-deploying only)</p>" +
+        "<h2>Timeline</h2><p class=`"muted`">Phase order; times approximate; registry rows have no time.</p><div class=`"tablewrap`"><table><thead><tr><th>Phase</th><th>Time</th><th>Source</th><th>Message</th></tr></thead><tbody>$($tRows -join "`n")</tbody></table></div>"
         $htmlFile = Join-Path -Path $OutputPath -ChildPath "DeviceDiagnostic-$stamp.html"
-        @"
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ZakitPro Device Diagnostic</title>
-<style>$($script:ZkReportCss)</style></head><body>
-<h1>Deployment Doctor: device diagnostic</h1>
-<p class="meta">$(& $enc $mode) &middot; $(& $enc $script:Facts.OS) &middot; IME $(& $enc $imeVersion) &middot; run $(& $enc $script:Facts.RunAt)</p>
-<div class="warnbox"><b>Read-only, local report.</b> Not tested against a live tenant. Test in non-production first. No data leaves this file.</div>
-<h2>Checks</h2><table><thead><tr><th>Status</th><th>Signal</th><th>Evidence</th><th>Known cause</th><th>What to do next</th></tr></thead><tbody>$($vRows -join "`n")</tbody></table>
-<h2>Collect before reset</h2><p><code>$(& $enc $collectMd)</code><br><code>$(& $enc $collect)</code><br><code>$(& $enc $collectTpm)</code> (pre-provisioning/self-deploying only)</p>
-<h2>Timeline (phase order; times approximate, registry rows have no time)</h2>
-<table><thead><tr><th>Phase</th><th>Time</th><th>Source</th><th>Message</th></tr></thead><tbody>$($tRows -join "`n")</tbody></table>
-</body></html>
-"@ | Set-Content -LiteralPath $htmlFile -Encoding UTF8
+        ConvertTo-ZkDashboardHtml -Title 'Device diagnostic' -Subtitle ('Kit 1 | {0} | {1} | IME {2} | run {3}' -f $mode, $script:Facts.OS, $imeVersion, $script:Facts.RunAt) -Finding @($dash) -ExtraHtml $extra | Set-Content -LiteralPath $htmlFile -Encoding UTF8
     }
     Write-Information -MessageData "Reports written to $OutputPath" -InformationAction Continue
 }
