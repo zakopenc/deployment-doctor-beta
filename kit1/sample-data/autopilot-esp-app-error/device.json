@@ -1,0 +1,31 @@
+{
+  "_note": "FAKE sample data for -SamplePath practice runs. Not from a real device. Names and IDs are placeholders.",
+  "computer": "CONTOSO-AP-02",
+  "os": {
+    "Caption": "Windows 11 Enterprise (sample)",
+    "BuildNumber": "26100"
+  },
+  "imeService": "Running",
+  "registry": {
+    "HKLM:\\SOFTWARE\\Microsoft\\Windows\\Autopilot\\EnrollmentStatusTracking\\Device\\Setup\\Apps\\Tracking\\Sidecar\\Win32App_00000000-0000-0000-0000-0000000000a1_1": {
+      "InstallationState": 4
+    },
+    "HKLM:\\SOFTWARE\\Microsoft\\Windows\\Autopilot\\EnrollmentStatusTracking\\Device\\Setup\\Apps\\Tracking\\Sidecar\\Win32App_00000000-0000-0000-0000-0000000000a2_1": {
+      "InstallationState": 3
+    },
+    "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{SAMPLE-IME}": {
+      "DisplayName": "Microsoft Intune Management Extension",
+      "DisplayVersion": "1.105.101.0"
+    }
+  },
+  "events": [
+    {
+      "LogName": "Microsoft-Windows-ModernDeployment-Diagnostics-Provider/Autopilot",
+      "Id": 100,
+      "Level": 4,
+      "LevelDisplayName": "Information",
+      "Message": "Autopilot profile downloaded (sample).",
+      "MinutesAgo": 90
+    }
+  ]
+}

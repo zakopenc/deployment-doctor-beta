@@ -113,3 +113,66 @@ Describe 'Kit 1 device HTML report' {
         @(Get-ChildItem -LiteralPath $Out -Filter '*.json').Count | Should -Be 1
     }
 }
+
+Describe 'Kit 1 Device Prep-only checks on tenants without Device Prep' {
+    BeforeEach { $script:Out = Join-Path -Path $TestDrive -ChildPath ([guid]::NewGuid().ToString()) }
+    It 'reports a missing service principal and the RBAC warning as Info when no Device Prep policy exists' {
+        Mock -CommandName Get-MgContext -MockWith { [PSCustomObject]@{ TenantId = 'contoso.onmicrosoft.com'; Scopes = @() } }
+        Mock -CommandName Invoke-MgGraphRequest -MockWith { [PSCustomObject]@{ value = @() } }
+        $r = & $Tenant -OutputPath $Out -KnownCausesPath $Db -SkipConnect -PassThru -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+        $sp = $r | Where-Object { $_.Signals -contains 'T_SP_MISSING' }
+        $sp.Result | Should -Be 'Info'
+        $sp.Detail | Should -Match 'Not applicable now: no Device Prep policy found'
+        ($r | Where-Object { $_.Signals -contains 'T_RBAC_ETG_PERMISSION_NOT_FOUND' }).Result | Should -Be 'Info'
+        @($r | Where-Object { $_.Result -eq 'Fail' }).Count | Should -Be 0
+        $h = Get-Content -LiteralPath (Get-ChildItem -LiteralPath $Out -Filter '*.html')[0].FullName -Raw
+        $h | Should -Not -Match 'Critical issues present'
+    }
+    It 'keeps the missing service principal as Fail when a Device Prep policy exists' {
+        Mock -CommandName Get-MgContext -MockWith { [PSCustomObject]@{ TenantId = 'contoso.onmicrosoft.com'; Scopes = @() } }
+        Mock -CommandName Invoke-MgGraphRequest -MockWith {
+            switch -Regex ($Uri) {
+                'configurationPolicies\?' { [PSCustomObject]@{ value = @([PSCustomObject]@{ id = 'p1'; name = 'DP Contoso'; templateReference = [PSCustomObject]@{ templateFamily = 'enrollmentConfiguration' } }) } }
+                default { [PSCustomObject]@{ value = @() } }
+            }
+        }
+        $r = & $Tenant -OutputPath $Out -KnownCausesPath $Db -SkipConnect -PassThru -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+        ($r | Where-Object { $_.Signals -contains 'T_SP_MISSING' }).Result | Should -Be 'Fail'
+        $h = Get-Content -LiteralPath (Get-ChildItem -LiteralPath $Out -Filter '*.html')[0].FullName -Raw
+        $h | Should -Match '<td>No service principal with AppID f1346770-5b25-470b-88bd-d5744ab7952c\.</td>'
+    }
+}
+
+Describe 'Kit 1 device diagnostic -SamplePath (offline practice mode)' {
+    BeforeAll {
+        if (-not (Get-Command -Name Get-WinEvent -ErrorAction SilentlyContinue)) { function global:Get-WinEvent { param($ListLog, $FilterHashtable, $MaxEvents, $ErrorAction) } }
+        if (-not (Get-Command -Name Get-CimInstance -ErrorAction SilentlyContinue)) { function global:Get-CimInstance { param($ClassName, $ErrorAction) } }
+        if (-not (Get-Command -Name Get-Service -ErrorAction SilentlyContinue)) { function global:Get-Service { param($Name, $ErrorAction) } }
+        $script:Samples = Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath 'sample-data'
+    }
+    BeforeEach {
+        $script:Out = Join-Path -Path $TestDrive -ChildPath ([guid]::NewGuid().ToString())
+        Mock -CommandName Get-WinEvent -MockWith { throw 'live event log read in sample mode' }
+        Mock -CommandName Get-CimInstance -MockWith { throw 'live WMI read in sample mode' }
+        Mock -CommandName Get-Service -MockWith { throw 'live service read in sample mode' }
+    }
+    It 'diagnoses the Device Prep sample without touching this computer' -Skip:(-not (Test-Path -LiteralPath (Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath 'sample-data'))) {
+        $v = & $Device -SamplePath (Join-Path $Samples 'device-prep-failure') -OutputPath $Out -KnownCausesPath $Db -PassThru -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+        $v.Signal | Should -Contain 'D_DP_PROGRESS_FAILURE'
+        $v.Signal | Should -Contain 'D_IME_LOG_ACTIVELY_REFUSED'
+        Should -Invoke -CommandName Get-WinEvent -Times 0
+        Should -Invoke -CommandName Get-CimInstance -Times 0
+        Should -Invoke -CommandName Get-Service -Times 0
+        $h = Get-Content -LiteralPath (Get-ChildItem -LiteralPath $Out -Filter '*.html')[0].FullName -Raw
+        $h | Should -Match 'Sample data: '
+        $h | Should -Match 'Sample run on FAKE data'
+    }
+    It 'diagnoses the ESP sample' -Skip:(-not (Test-Path -LiteralPath (Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath 'sample-data'))) {
+        $v = & $Device -SamplePath (Join-Path $Samples 'autopilot-esp-app-error') -OutputPath $Out -KnownCausesPath $Db -PassThru -WarningAction SilentlyContinue -InformationAction SilentlyContinue
+        $v.Signal | Should -Contain 'D_ESP_APP_ERROR'
+        $v.Signal | Should -Contain 'D_SCRIPT_TIMEOUT_GAP'
+    }
+    It 'fails clearly when the sample folder has no device.json' {
+        { & $Device -SamplePath $TestDrive -OutputPath $Out -KnownCausesPath $Db -InformationAction SilentlyContinue } | Should -Throw '*device.json*'
+    }
+}

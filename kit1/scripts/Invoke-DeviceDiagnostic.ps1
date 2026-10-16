@@ -41,12 +41,21 @@
     What you expected this device to run: Any (default), AutopilotV1 or DevicePrep. With DevicePrep, seeing
     ESP raises KC-024 (a registered Autopilot profile took precedence). With Any, ESP is only reported as context.
 
+.PARAMETER SamplePath
+    Offline practice mode. Folder with a device.json (fake registry values, events, OS and IME service data)
+    and an optional IMELogs subfolder. When set, the script reads ONLY that folder: no registry, event log,
+    WMI or service query on this computer. Sample folders ship in ..\sample-data\ (fake data).
+
 .PARAMETER PassThru
     Also return the verdict objects to the pipeline (for scripting). Off by default so the console stays clean.
 
 .EXAMPLE
     powershell.exe -ExecutionPolicy Bypass -File D:\Kit1\scripts\Invoke-DeviceDiagnostic.ps1 -OutputPath D:\
     At Shift+F10 in OOBE. Process-scoped bypass only, for this one run; reports go to the USB drive.
+
+.EXAMPLE
+    .\Invoke-DeviceDiagnostic.ps1 -SamplePath ..\sample-data\device-prep-failure -OutputPath .\sample-out
+    Practice run on fake sample data; works on any machine, touches nothing on this computer.
 
 .EXAMPLE
     .\Invoke-DeviceDiagnostic.ps1 -ExpectedMode DevicePrep -PassThru | Where-Object Severity -eq 'Fail'
@@ -57,7 +66,7 @@
 
 .NOTES
     Name:         Invoke-DeviceDiagnostic.ps1
-    Version:      1.3.0 (2026-10-16)
+    Version:      1.3.1 (2026-10-16)
     Publisher:    ZakitPro - Abderrazak Elbouchikhi (Zak) - hello@zakitpro.com
     Requires:     Windows 10/11, Windows PowerShell 5.1. Run elevated (or as SYSTEM at Shift+F10) to read all
                   logs. No modules, no network, no Graph.
@@ -90,7 +99,11 @@ param(
     [string]$ExpectedMode = 'Any',
 
     [Parameter()]
-    [switch]$PassThru
+    [switch]$PassThru,
+
+    [Parameter()]
+    [ValidateNotNullOrEmpty()]
+    [string]$SamplePath
 )
 
 Set-StrictMode -Version Latest
@@ -126,14 +139,121 @@ function Add-Signal {
     $script:Signals.Add([PSCustomObject]@{ Severity = $Severity; Signal = $Signal; Finding = $Finding; KnownCauseIds = @() })
 }
 
+
+# ------------------------------------------------------------------ data access (live or -SamplePath)
+$script:Sample = $null
+if ($SamplePath) {
+    $sampleFile = Join-Path -Path $SamplePath -ChildPath 'device.json'
+    if (-not (Test-Path -LiteralPath $sampleFile)) { throw "Sample mode: '$sampleFile' not found." }
+    $script:Sample = Get-Content -LiteralPath $sampleFile -Raw | ConvertFrom-Json
+    $script:SampleKeys = [ordered]@{}
+    foreach ($prop in @($script:Sample.registry.PSObject.Properties)) { $script:SampleKeys[$prop.Name.TrimEnd('\')] = $prop.Value }
+}
+
+function ConvertTo-ZkSampleKey {
+    [OutputType([object])]
+    <# Builds an object shaped like a registry key from sample data. In memory only. #>
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$Path)
+    $vals = @{}
+    if ($script:SampleKeys.Contains($Path) -and $null -ne $script:SampleKeys[$Path]) { foreach ($v in @($script:SampleKeys[$Path].PSObject.Properties)) { $vals[$v.Name] = $v.Value } }
+    $o = [PSCustomObject]@{ Name = ($Path -replace '^HKLM:\\', 'HKEY_LOCAL_MACHINE\'); PSChildName = ($Path -split '\\')[-1]; Vals = $vals }
+    $o | Add-Member -MemberType ScriptMethod -Name GetValueNames -Value { @($this.Vals.Keys) }
+    $o | Add-Member -MemberType ScriptMethod -Name GetValue -Value { param($n) $this.Vals[$n] }
+    $o
+}
+
+function Get-ZkSampleKeyPath {
+    [OutputType([string[]])]
+    <# All sample key paths, including implied parent keys. #>
+    [CmdletBinding()]
+    param()
+    $all = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($k in $script:SampleKeys.Keys) {
+        $parts = $k -split '\\'
+        for ($i = 2; $i -le $parts.Count; $i++) { [void]$all.Add(($parts[0..($i - 1)] -join '\')) }
+    }
+    @($all)
+}
+
+function Test-ZkPath {
+    [OutputType([bool])]
+    <# Test-Path, or a lookup in the sample data for HKLM paths in -SamplePath mode. #>
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$LiteralPath)
+    if ($script:Sample -and $LiteralPath -like 'HKLM:*') { return (@(Get-ZkSampleKeyPath) -contains $LiteralPath.TrimEnd('\')) }
+    Test-Path -LiteralPath $LiteralPath
+}
+
+function Get-ZkRegistryKey {
+    [OutputType([object])]
+    <# Get-Item for a registry key, or the sample key. Read-only. #>
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$LiteralPath)
+    if ($script:Sample) { return (ConvertTo-ZkSampleKey -Path $LiteralPath.TrimEnd('\')) }
+    Get-Item -LiteralPath $LiteralPath -ErrorAction Stop
+}
+
+function Get-ZkRegistrySubkey {
+    [OutputType([object])]
+    <# Get-ChildItem for registry keys (optionally recursive), or sample keys. Read-only. #>
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$LiteralPath, [Parameter()][switch]$Recurse, [Parameter()][int]$Depth = -1)
+    if ($script:Sample) {
+        $root = $LiteralPath.TrimEnd('\')
+        $rootDepth = @($root -split '\\').Count
+        return @(Get-ZkSampleKeyPath | Where-Object { $_ -like "$root\*" } | Where-Object {
+                $d = @($_ -split '\\').Count - $rootDepth
+                if ($Recurse) { ($Depth -lt 0) -or ($d -le $Depth + 1) } else { $d -eq 1 }
+            } | Sort-Object | ForEach-Object { ConvertTo-ZkSampleKey -Path $_ })
+    }
+    if ($Recurse -and $Depth -ge 0) { return @(Get-ChildItem -LiteralPath $LiteralPath -Recurse -Depth $Depth -ErrorAction SilentlyContinue) }
+    if ($Recurse) { return @(Get-ChildItem -LiteralPath $LiteralPath -Recurse -ErrorAction SilentlyContinue) }
+    @(Get-ChildItem -LiteralPath $LiteralPath -ErrorAction SilentlyContinue)
+}
+
+function Get-ZkWinEvent {
+    [OutputType([object])]
+    <# Get-WinEvent (-ListLog or -FilterHashtable), or the sample events. Read-only. #>
+    [CmdletBinding()]
+    param([Parameter()][string]$ListLog, [Parameter()][hashtable]$FilterHashtable, [Parameter()][int]$MaxEvents = 500)
+    if ($script:Sample) {
+        $ev = @($script:Sample.events)
+        if ($ListLog) { return @($ev | Where-Object { $_.LogName -like $ListLog } | Group-Object -Property LogName | ForEach-Object { [PSCustomObject]@{ LogName = $_.Name; RecordCount = $_.Count } }) }
+        $sel = @($ev | Where-Object { $_.LogName -eq $FilterHashtable.LogName -and (-not $FilterHashtable.ContainsKey('Id') -or @($FilterHashtable.Id) -contains [int]$_.Id) })
+        if ($sel.Count -eq 0) { throw 'No events were found that match the specified selection criteria.' }
+        return @($sel | Select-Object -First $MaxEvents | ForEach-Object { [PSCustomObject]@{ Id = [int]$_.Id; TimeCreated = (Get-Date).AddMinutes(-[int]$_.MinutesAgo); Level = [int]$_.Level; LevelDisplayName = $_.LevelDisplayName; Message = $_.Message; LogName = $_.LogName } })
+    }
+    if ($ListLog) { return @(Get-WinEvent -ListLog $ListLog -ErrorAction SilentlyContinue) }
+    @(Get-WinEvent -FilterHashtable $FilterHashtable -MaxEvents $MaxEvents -ErrorAction Stop)
+}
+
+function Get-ZkOperatingSystem {
+    [OutputType([object])]
+    <# Win32_OperatingSystem, or the sample OS. Read-only. #>
+    [CmdletBinding()]
+    param()
+    if ($script:Sample) { return [PSCustomObject]@{ Caption = $script:Sample.os.Caption; BuildNumber = $script:Sample.os.BuildNumber; LastBootUpTime = (Get-Date).AddHours(-1) } }
+    Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
+}
+
+function Get-ZkImeService {
+    [OutputType([object])]
+    <# The IME service, or the sample service state (null when absent). Read-only. #>
+    [CmdletBinding()]
+    param()
+    if ($script:Sample) { if ($script:Sample.imeService) { return [PSCustomObject]@{ Status = $script:Sample.imeService } } else { return $null } }
+    Get-Service -Name 'IntuneManagementExtension' -ErrorAction SilentlyContinue
+}
+
 function Get-RegistryValueSafe {
     [OutputType([object])]
     <# Returns a hashtable of value name -> data for a key, or $null if missing. Read-only. #>
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$Path)
-    if (-not (Test-Path -LiteralPath $Path)) { return $null }
+    if (-not (Test-ZkPath -LiteralPath $Path)) { return $null }
     try {
-        $item = Get-Item -LiteralPath $Path -ErrorAction Stop
+        $item = Get-ZkRegistryKey -LiteralPath $Path
         $h = [ordered]@{}
         foreach ($n in $item.GetValueNames()) { $h[$n] = $item.GetValue($n) }
         return $h
@@ -149,9 +269,9 @@ function Find-RegistrySubkey {
     <# Bounded recursive search for subkeys with a given leaf name. Read-only. #>
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$Root, [Parameter(Mandatory)][string]$LeafName, [Parameter()][int]$Depth = 4)
-    if (-not (Test-Path -LiteralPath $Root)) { return @() }
+    if (-not (Test-ZkPath -LiteralPath $Root)) { return @() }
     try {
-        return @(Get-ChildItem -LiteralPath $Root -Recurse -Depth $Depth -ErrorAction SilentlyContinue |
+        return @(Get-ZkRegistrySubkey -LiteralPath $Root -Recurse -Depth $Depth |
                 Where-Object { $_.PSChildName -eq $LeafName })
     }
     catch {
@@ -166,12 +286,12 @@ function Get-EventSafe {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$LogPattern, [Parameter()][int[]]$Id, [Parameter()][int]$Max = 500)
     $out = @()
-    $logs = @(Get-WinEvent -ListLog $LogPattern -ErrorAction SilentlyContinue | Where-Object { $_.RecordCount -gt 0 })
+    $logs = @(Get-ZkWinEvent -ListLog $LogPattern | Where-Object { $_.RecordCount -gt 0 })
     foreach ($log in $logs) {
         $filter = @{ LogName = $log.LogName }
         if ($Id) { $filter.Id = $Id }
         try {
-            $out += @(Get-WinEvent -FilterHashtable $filter -MaxEvents $Max -ErrorAction Stop)
+            $out += @(Get-ZkWinEvent -FilterHashtable $filter -MaxEvents $Max)
         }
         catch {
             if ($_.Exception.Message -notmatch 'No events were found') { Write-Verbose -Message "Read $($log.LogName) failed: $($_.Exception.Message)" }
@@ -182,12 +302,13 @@ function Get-EventSafe {
 
 # ------------------------------------------------------------------ device basics
 try {
-    $os = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
+    $os = Get-ZkOperatingSystem
     $script:Facts.OS = "$($os.Caption) build $($os.BuildNumber)"
     $script:Facts.LastBoot = $os.LastBootUpTime
 }
 catch { $script:Facts.OS = "Unknown ($($_.Exception.Message))" }
-$script:Facts.Computer = $env:COMPUTERNAME
+$script:Facts.Computer = if ($script:Sample) { 'SAMPLE: ' + [string]$script:Sample.computer } else { $env:COMPUTERNAME }
+$script:Facts.Source = if ($script:Sample) { "Sample data: $SamplePath (fake)" } else { 'This device (live read)' }
 $script:Facts.RunAt = (Get-Date).ToString('o')
 $isAdmin = $false
 try {
@@ -195,20 +316,20 @@ try {
 }
 catch { Write-Verbose -Message "Elevation check unavailable: $($_.Exception.Message)" }
 $script:Facts.Elevated = $isAdmin
-if (-not $isAdmin) { Write-Warning -Message 'Not elevated: some event logs and registry keys may be unreadable.' }
+if (-not $isAdmin -and -not $script:Sample) { Write-Warning -Message 'Not elevated: some event logs and registry keys may be unreadable.' }
 
 # ------------------------------------------------------------------ M3: ESP tracking (APv1)
 $espRoot = 'HKLM:\SOFTWARE\Microsoft\Windows\Autopilot\EnrollmentStatusTracking'
-$espPresent = Test-Path -LiteralPath $espRoot
+$espPresent = Test-ZkPath -LiteralPath $espRoot
 $script:Facts.EspTrackingKey = $espPresent
 if ($espPresent) {
     if ($ExpectedMode -eq 'DevicePrep') {
         Add-Signal -Signal 'D_ESP_PRESENT_EXPECTED_DP' -Severity 'Warn' -Finding 'You expected Device Prep, but this device ran the Enrollment Status Page (ESP tracking key exists). A registered Autopilot profile probably took precedence.'
     }
-    $deviceSetup = Test-Path -LiteralPath "$espRoot\Device\Setup"
+    $deviceSetup = Test-ZkPath -LiteralPath "$espRoot\Device\Setup"
     $script:Facts.EspDeviceSetupKey = $deviceSetup
     $stateNames = @{ 1 = 'NotInstalled'; 2 = 'InProgress'; 3 = 'Completed'; 4 = 'Error' }
-    $appKeys = @(Get-ChildItem -LiteralPath $espRoot -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.PSChildName -like 'Win32App_*' })
+    $appKeys = @(Get-ZkRegistrySubkey -LiteralPath $espRoot -Recurse | Where-Object { $_.PSChildName -like 'Win32App_*' })
     foreach ($k in $appKeys) {
         $state = $k.GetValue('InstallationState')
         if ($null -eq $state) { continue }
@@ -363,14 +484,14 @@ elseif ($ciEvents.Count -gt 0) {
 # ------------------------------------------------------------------ IME presence and version
 $imeVersion = $null
 foreach ($u in 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall', 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall') {
-    if (-not (Test-Path -LiteralPath $u)) { continue }
-    foreach ($k in @(Get-ChildItem -LiteralPath $u -ErrorAction SilentlyContinue)) {
+    if (-not (Test-ZkPath -LiteralPath $u)) { continue }
+    foreach ($k in @(Get-ZkRegistrySubkey -LiteralPath $u)) {
         if ([string]$k.GetValue('DisplayName') -eq 'Microsoft Intune Management Extension') { $imeVersion = [string]$k.GetValue('DisplayVersion') }
     }
 }
-$imeService = Get-Service -Name 'IntuneManagementExtension' -ErrorAction SilentlyContinue
+$imeService = Get-ZkImeService
 $programData = if ($env:ProgramData) { $env:ProgramData } else { 'C:\ProgramData' }
-$imeLogDir = Join-Path -Path $programData -ChildPath 'Microsoft\IntuneManagementExtension\Logs'
+$imeLogDir = if ($script:Sample) { Join-Path -Path $SamplePath -ChildPath 'IMELogs' } else { Join-Path -Path $programData -ChildPath 'Microsoft\IntuneManagementExtension\Logs' }
 $script:Facts.ImeVersion = $imeVersion
 $script:Facts.ImeService = if ($imeService) { [string]$imeService.Status } else { 'Not found' }
 $script:Facts.ImeLogs = Test-Path -LiteralPath $imeLogDir
@@ -441,7 +562,7 @@ $collectMd = 'md C:\Temp   (or: New-Item -Path C:\Temp -ItemType Directory -Forc
 $collect = 'mdmdiagnosticstool.exe -area Autopilot -cab C:\Temp\AutopilotDiag.cab'
 $collectTpm = 'mdmdiagnosticstool.exe -area "Autopilot;TPM" -cab C:\Temp\AutopilotDiag.cab'
 
-Write-Information -MessageData "`nZakitPro Deployment Doctor - device diagnostic 1.3.0 (read-only)" -InformationAction Continue
+Write-Information -MessageData "`nZakitPro Deployment Doctor - device diagnostic 1.3.1 (read-only)" -InformationAction Continue
 Write-Information -MessageData "Expected: $ExpectedMode | Deployment type: $mode | $($script:Facts.OS) | IME: $(if ($imeVersion) { $imeVersion } else { 'not installed' })" -InformationAction Continue
 if ($verdicts.Count -eq 0) { Write-Information -MessageData 'No known-cause signals found.' -InformationAction Continue }
 foreach ($v in $verdicts) {
@@ -451,7 +572,7 @@ foreach ($v in $verdicts) {
         Write-Information -MessageData ("       Fix ({0}): {1}`n       Why: {2}" -f $cid, $c.fix, $c.cause) -InformationAction Continue
     }
 }
-Write-Information -MessageData "`nBefore any reset, collect logs (copy the CAB off the device):`n  $collectMd`n  $collect`n  Pre-provisioning/self-deploying only: $collectTpm`nAlso check Intune for an auto-collected diagnostics bundle first." -InformationAction Continue
+Write-Information -MessageData "`nBefore any reset, collect logs (copy the CAB off the device):`n  $collectMd`n  $collect`n  Self-deploying, pre-provisioning or any other physical device (per Learn): $collectTpm`nAlso check Intune for an auto-collected diagnostics bundle first." -InformationAction Continue
 
 function ConvertTo-ZkReportStatus {
     <#
@@ -517,6 +638,10 @@ function ConvertTo-ZkDashboardHtml {
         Finding objects.
     .PARAMETER ExtraHtml
         Pre-escaped HTML appended after the findings table.
+    .PARAMETER Brand
+        Product name shown above the title.
+    .PARAMETER Banner
+        Plain-text notice shown under the header.
     .EXAMPLE
         ConvertTo-ZkDashboardHtml -Title 'Report' -Subtitle 'Sample' -Finding $rows
     .EXAMPLE
@@ -530,13 +655,16 @@ function ConvertTo-ZkDashboardHtml {
         [Parameter(Mandatory)][string]$Title,
         [Parameter()][string]$Subtitle,
         [Parameter()][AllowEmptyCollection()][object[]]$Finding = @(),
-        [Parameter()][string]$ExtraHtml = ''
+        [Parameter()][string]$ExtraHtml = '',
+        [Parameter()][string]$Brand = 'ZakitPro Deployment Doctor',
+        [Parameter()][string]$Banner = 'Read-only, local report. Not tested against a live tenant. Test in non-production first. This file makes no network requests.'
     )
     $enc = { param($x) [System.Net.WebUtility]::HtmlEncode([string]$x) }
     $label = @{ red = 'Critical'; yellow = 'Warning'; green = 'Passed'; grey = 'Info' }
     $count = @{ red = 0; yellow = 0; green = 0; grey = 0 }
     $statuses = New-Object -TypeName System.Collections.Generic.List[string]
     $rows = New-Object -TypeName System.Text.StringBuilder
+    $hasConf = @($Finding | Where-Object { $_.PSObject.Properties['Confidence'] -and -not [string]::IsNullOrWhiteSpace([string]$_.Confidence) }).Count -gt 0
     foreach ($f in @($Finding)) {
         $c = ConvertTo-ZkReportStatus -Value ([string]$f.Status)
         $count[$c]++
@@ -544,9 +672,9 @@ function ConvertTo-ZkDashboardHtml {
         if (-not $statuses.Contains($st)) { $statuses.Add($st) }
         $ev = & $enc $f.Evidence
         $evCell = if ([string]::IsNullOrWhiteSpace([string]$f.Evidence)) { '<span class="muted">None</span>' } else { '<details><summary>Show evidence</summary><pre>' + $ev + '</pre></details><pre class="print-ev">' + $ev + '</pre>' }
-        [void]$rows.Append('<tr data-sev="' + $c + '" data-st="' + (& $enc $st) + '"><td><span class="st st-' + $c + '" data-status="' + $c + '">' + $label[$c] + '</span></td><td>' + (& $enc $st) + '</td><td>' + (& $enc $f.Scope) + '</td><td>' + (& $enc $f.Check) + '</td><td>' + (& $enc $f.Finding) + '</td><td>' + $evCell + '</td><td>' + $f.NextHtml + '</td></tr>' + "`n")
+        [void]$rows.Append('<tr data-sev="' + $c + '" data-st="' + (& $enc $st) + '"><td><span class="st st-' + $c + '" data-status="' + $c + '">' + $label[$c] + '</span></td><td>' + (& $enc $st) + '</td>' + $(if ($hasConf) { '<td>' + $(if ($f.PSObject.Properties['Confidence']) { & $enc $f.Confidence } else { '' }) + '</td>' } else { '' }) + '<td>' + (& $enc $f.Scope) + '</td><td>' + (& $enc $f.Check) + '</td><td>' + (& $enc $f.Finding) + '</td><td>' + $evCell + '</td><td>' + $f.NextHtml + '</td></tr>' + "`n")
     }
-    if (@($Finding).Count -eq 0) { [void]$rows.Append('<tr><td colspan="7" class="muted">No checks produced output.</td></tr>') }
+    if (@($Finding).Count -eq 0) { [void]$rows.Append('<tr><td colspan="8" class="muted">No checks produced output.</td></tr>') }
     $scored = $count.red + $count.yellow + $count.green
     $score = if ($scored -gt 0) { [int][Math]::Round(100 * ($count.green + 0.5 * $count.yellow) / $scored) } else { 100 }
     $rawScore = $score
@@ -602,16 +730,16 @@ window.addEventListener("beforeprint",function(){for(var i=0;i<rows.length;i++){
     [void]$sb.Append('<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">')
     [void]$sb.Append('<meta http-equiv="Content-Security-Policy" content="default-src ''none''; style-src ''unsafe-inline''; script-src ''unsafe-inline''; img-src data:; base-uri ''none''; form-action ''none''">')
     [void]$sb.Append('<meta name="referrer" content="no-referrer"><title>' + (& $enc $Title) + '</title><style>' + $css + '</style></head><body><div class="wrap">')
-    [void]$sb.Append('<header class="top"><div><div class="brand">ZakitPro Deployment Doctor</div><h1>' + (& $enc $Title) + '</h1><div class="meta">' + (& $enc $Subtitle) + '</div></div>')
+    [void]$sb.Append('<header class="top"><div><div class="brand">' + (& $enc $Brand) + '</div><h1>' + (& $enc $Title) + '</h1><div class="meta">' + (& $enc $Subtitle) + '</div></div>')
     [void]$sb.Append('<button type="button" id="zk-theme" class="tg hidden-js" aria-label="Toggle dark or light theme">Toggle theme</button></header>')
-    [void]$sb.Append('<div class="banner"><b>Read-only, local report.</b> Not tested against a live tenant. Test in non-production first. This file makes no network requests.</div>')
+    [void]$sb.Append('<div class="banner">' + (& $enc $Banner) + '</div>')
     [void]$sb.Append('<section class="grid" aria-label="Summary"><div class="card scorecard" title="' + (& $enc $legend) + '"><div class="score"><div class="ring ' + $scoreClass + '" aria-label="Health score ' + $score + ' out of 100" data-capped="' + $(if ($capped) { 'true' } else { 'false' }) + '">' + $score + '</div><div><div class="k">Health score</div>' + $scoreNote + '</div></div><div class="legend" id="zk-legend">' + (& $enc $legend) + '</div></div>')
     foreach ($k in 'red', 'yellow', 'green', 'grey') { [void]$sb.Append('<div class="card ' + $k + '"><div class="k">' + $label[$k] + '</div><div class="v">' + $count[$k] + '</div></div>') }
     [void]$sb.Append('</section><h2>Findings</h2>')
     [void]$sb.Append('<div id="zk-filters" class="filters hidden-js" role="search"><label>Search<input id="zk-q" type="search" placeholder="Filter by any text"></label>')
     [void]$sb.Append('<label>Severity<select id="zk-sev"><option value="">All</option><option value="red">Critical</option><option value="yellow">Warning</option><option value="green">Passed</option><option value="grey">Info</option></select></label>')
     [void]$sb.Append('<label>Status<select id="zk-st"><option value="">All</option>' + $stOptions + '</select></label><span id="zk-count" class="muted" aria-live="polite"></span></div>')
-    [void]$sb.Append('<div class="tablewrap"><table id="zk-findings"><thead><tr><th>Severity</th><th>Status</th><th>Scope</th><th>Check</th><th>Finding</th><th>Evidence</th><th>Next step</th></tr></thead><tbody>')
+    [void]$sb.Append('<div class="tablewrap"><table id="zk-findings"><thead><tr><th>Severity</th><th>Status</th>' + $(if ($hasConf) { '<th>Confidence</th>' } else { '' }) + '<th>Scope</th><th>Check</th><th>Finding</th><th>Evidence</th><th>Next step</th></tr></thead><tbody>')
     [void]$sb.Append($rows.ToString())
     [void]$sb.Append('</tbody></table></div>')
     [void]$sb.Append($ExtraHtml)
@@ -627,7 +755,7 @@ try {
     $jsonFile = Join-Path -Path $OutputPath -ChildPath "DeviceDiagnostic-$stamp.json"
 $allCauseIds = @($verdicts | ForEach-Object { $_.KnownCauseIds })
     [PSCustomObject]@{
-        Tool     = 'ZakitPro Kit 1 Invoke-DeviceDiagnostic 1.3.0'
+        Tool     = 'ZakitPro Kit 1 Invoke-DeviceDiagnostic 1.3.1'
         Facts    = $script:Facts
         Verdicts = $verdicts
         Timeline = $ordered
@@ -646,10 +774,10 @@ $allCauseIds = @($verdicts | ForEach-Object { $_.KnownCauseIds })
         }
         if (@($verdicts).Count -eq 0) { $dash = @([pscustomobject]@{ Status = 'Pass'; Scope = 'Device'; Check = 'Known-cause signals'; Finding = 'No known-cause signals found.'; Evidence = ''; NextHtml = '<span class="next next-code">Keep the logs</span>' }) }
         $tRows = foreach ($t in $ordered) { $ph = if ($t.Phase -eq 'Unknown') { 'Context (no time)' } else { $t.Phase }; "<tr><td>$(& $enc $ph)</td><td>$(& $enc $t.Time)</td><td>$(& $enc $t.Source)</td><td>$(& $enc $t.Message)</td></tr>" }
-        $extra = "<h2>Collect before reset</h2><p><code>$(& $enc $collectMd)</code><br><code>$(& $enc $collect)</code><br><code>$(& $enc $collectTpm)</code> (pre-provisioning/self-deploying only)</p>" +
+        $extra = "<h2>Collect before reset</h2><p><code>$(& $enc $collectMd)</code><br><code>$(& $enc $collect)</code><br><code>$(& $enc $collectTpm)</code> (self-deploying, pre-provisioning or any other physical device, per Learn; user-driven mode: the first command)</p>" +
         "<h2>Timeline</h2><p class=`"muted`">Phase order; times approximate; registry rows have no time.</p><div class=`"tablewrap`"><table><thead><tr><th>Phase</th><th>Time</th><th>Source</th><th>Message</th></tr></thead><tbody>$($tRows -join "`n")</tbody></table></div>"
         $htmlFile = Join-Path -Path $OutputPath -ChildPath "DeviceDiagnostic-$stamp.html"
-        ConvertTo-ZkDashboardHtml -Title 'Device diagnostic' -Subtitle ('Kit 1 | {0} | {1} | IME {2} | run {3}' -f $mode, $script:Facts.OS, $imeVersion, $script:Facts.RunAt) -Finding @($dash) -ExtraHtml $extra | Set-Content -LiteralPath $htmlFile -Encoding UTF8
+        ConvertTo-ZkDashboardHtml -Title 'Device diagnostic' -Subtitle ('Kit 1 | {0} | {1} | {2} | IME {3} | run {4}' -f $script:Facts.Source, $mode, $script:Facts.OS, $imeVersion, $script:Facts.RunAt) -Banner $(if ($script:Sample) { 'Sample run on FAKE data. Nothing on this computer was read.' } else { 'Read-only, local report. Not tested on a real device. Test on a non-production device first. This file makes no network requests.' }) -Finding @($dash) -ExtraHtml $extra | Set-Content -LiteralPath $htmlFile -Encoding UTF8
     }
     Write-Information -MessageData "Reports written to $OutputPath" -InformationAction Continue
 }

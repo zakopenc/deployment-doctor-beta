@@ -1,6 +1,6 @@
 # Deployment Doctor (beta scripts)
 
-Read-only PowerShell diagnostics for Windows Autopilot / Autopilot device preparation (Kit 1, v1.3.0) and Intune Win32 app deployments (Kit 2, v1.2.0), from ZakitPro.
+Read-only PowerShell diagnostics for Windows Autopilot / Autopilot device preparation (Kit 1 scripts v1.3.1) and Intune Win32 app deployments (Kit 2 scripts v1.2.1), from ZakitPro.
 
 > **Warning: not tested against a live tenant.** These scripts have been checked only with PSScriptAnalyzer and Pester unit tests that use mocked Graph responses and synthetic log files. They have not been run on a real tenant or a real device.
 >
@@ -28,6 +28,8 @@ Sign in with an account that can read Intune and Entra (for example Global Reade
 # Kit 1 device diagnostic. Run elevated (or as SYSTEM at Shift+F10); without admin it warns and some logs/keys are unreadable.
 # Report folder default: $env:TEMP. -ExpectedMode Any|AutopilotV1|DevicePrep
 .\kit1\scripts\Invoke-DeviceDiagnostic.ps1 -ExpectedMode DevicePrep -OutputPath D:\
+# Try it first on FAKE data, on any machine with PowerShell 7 (reads only the sample folder, nothing on this computer):
+.\kit1\scripts\Invoke-DeviceDiagnostic.ps1 -SamplePath .\kit1\sample-data\device-prep-failure -OutputPath C:\Temp\DD
 
 # Kit 2 tenant pre-check (Win32 apps). Report folder default: .\ZakitPro-Kit2-Reports
 .\kit2\scripts\Invoke-TenantPreCheck.ps1 -TenantId contoso.onmicrosoft.com -AppNameFilter "Contoso" -OutputPath C:\Temp\DD
@@ -49,6 +51,7 @@ kit1/scripts/Invoke-TenantPreCheck.ps1     Kit 1 tenant pre-check (Graph, read-o
 kit1/scripts/Invoke-DeviceDiagnostic.ps1   Kit 1 on-device diagnostic (no Graph, no network)
 kit1/data/known-causes.json                Signal map the Kit 1 scripts need to run (see below)
 kit1/tests/Kit1.Tests.ps1                  Pester tests
+kit1/sample-data/                          FAKE datasets for the Kit 1 device script's -SamplePath mode
 kit2/scripts/Invoke-TenantPreCheck.ps1     Kit 2 Win32 app tenant audit (Graph, read-only)
 kit2/scripts/Invoke-DeviceDiagnostic.ps1   Kit 2 on-device IME log diagnostic (no Graph, no network)
 kit2/scripts/known-causes.json             Signal map the Kit 2 scripts need to run (see below)
@@ -63,10 +66,12 @@ The `known-causes.json` files are trimmed signal maps: cause IDs, match signals/
 ## Local HTML report
 Each script writes one self-contained HTML dashboard next to its JSON report. It uses inline CSS and inline vanilla JavaScript only, with no external files, CDNs, web fonts or telemetry. A Content-Security-Policy meta tag blocks network requests from the page.
 - **Summary header:** a health score, plus status cards with counts (Critical, Warning, Passed, Info). A legend under the score (also shown as a tooltip and in the footer) explains the weighting: Passed = 1, Warning = 0.5, Critical = 0, and Info and not-checked rows are not scored. Score = `round(100 x (Passed + 0.5 x Warning) / (Passed + Warning + Critical))`. If any Critical finding exists, the score is capped at 49, the ring turns red and a "Critical issues present" label appears.
-- **Findings table:** severity pills (each with a text label), the raw status, scope, check and finding. Evidence is HTML-escaped and collapsible (`<details>`). A **Next step** button links to Microsoft Learn; when no Learn page exists, the cell shows the KC/check code instead.
+- **Findings table:** severity pills (each with a text label), the real status (for example `Fail (High)`), a Confidence column when a finding has one (Kit 2 verdicts; heuristic name-matching checks are labelled), scope, check and the finding's actual detail. Evidence is HTML-escaped and collapsible (`<details>`). A **Next step** button links to Microsoft Learn; when no Learn page exists, the cell shows the KC/check code instead.
 - **Filters:** filter by severity and by status, and search by text. With JavaScript disabled, the filters stay hidden and the full table is shown.
 - **Themes:** light and dark, following `prefers-color-scheme`, plus a toggle button. Colours come from the ZakitPro design system, with accessible contrast. Text uses the system font stack.
 - **Print:** print CSS expands all evidence, shows every row, and prints link URLs.
+- **Header:** each kit's own name. A Kit 2 device report built with `-LogPath` names the analysed log source ("Offline log analysis") instead of the computer it ran on. A Kit 1 `-SamplePath` report says "Sample data" and "FAKE".
+- **Not applicable checks:** on a tenant with no Autopilot device preparation policy, Kit 1's Device Prep service principal and custom-role checks report Info ("Not applicable now") instead of Critical/Warning.
 - **`-NoHtml`:** writes only the JSON report. The scripts stay read-only: the local report files are the only thing they write.
 
 | Light | Dark |

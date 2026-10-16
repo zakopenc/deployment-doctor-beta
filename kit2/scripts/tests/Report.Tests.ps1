@@ -57,7 +57,7 @@ BeforeAll {
         )
     }
     $script:DeviceReport = [pscustomobject]@{
-        Computer = 'CONTOSO-PC01'; GeneratedLocal = '2026-01-01 09:00:00'; KitVersion = '1.2.0'; KnownCausesDb = 'beta'; Ime = $null; LogFiles = @('AppWorkload.log'); RecordCount = 3
+        Computer = 'Offline log analysis'; Source = 'Log source: D:\Collected\CONTOSO-LOGS'; GeneratedLocal = '2026-01-01 09:00:00'; KitVersion = '1.2.0'; KnownCausesDb = 'beta'; Ime = $null; LogFiles = @('AppWorkload.log'); RecordCount = 3
         DeviceVerdicts = @()
         Apps = @(
             [pscustomobject]@{ Name = 'Contoso Viewer'; AppId = '00000000-0000-0000-0000-00000000000a'; Signals = @('exit:0', 'detected:false:post'); Unexplained = @(); Context = @(); TenantFindings = @(); DetectionRules = @(); RegistryState = $null
@@ -70,6 +70,11 @@ BeforeAll {
 
 Describe 'Kit 2 tenant HTML report' {
     BeforeAll { $script:F = & $script:TenantExport -Report $script:TenantReport -OutputPath (Join-Path $TestDrive 't') -KnownCause $script:Db; $script:H = Get-Content -LiteralPath $script:F.Html -Raw }
+    It 'uses Kit 2 branding and shows real statuses' {
+        $script:H | Should -Match 'class="brand">ZakitPro Win32 App Deployment Doctor<'
+        $script:H | Should -Match '<td>Fail \(High\)</td>'
+        $script:H | Should -Match '<td>Warn \(Medium\)</td>'
+    }
     It 'creates one self-contained HTML file with inline CSS and print styles' {
         Test-Path -LiteralPath $script:F.Html | Should -BeTrue
         $script:H | Should -Match '<style>'
@@ -105,6 +110,25 @@ Describe 'Kit 2 tenant HTML report' {
 
 Describe 'Kit 2 device HTML report' {
     BeforeAll { $script:F = Export-ZkDeviceReport -Report $script:DeviceReport -OutputPath (Join-Path $TestDrive 'd'); $script:H = Get-Content -LiteralPath $script:F.Html -Raw }
+    It 'uses Kit 2 branding and a device banner that does not mention a live tenant' {
+        $script:H | Should -Match 'class="brand">ZakitPro Win32 App Deployment Doctor<'
+        $script:H | Should -Not -Match '(?i)live tenant'
+    }
+    It 'shows a real status and a separate Confidence column' {
+        $script:H | Should -Match '<th>Status</th><th>Confidence</th>'
+        $script:H | Should -Match 'data-st="Fail"><td><span class="st st-red" data-status="red">Critical</span></td><td>Fail</td><td>High</td>'
+    }
+    It 'shows the log source, not a host name, for offline runs' {
+        $script:H | Should -Match 'Log source: D:\\Collected\\CONTOSO-LOGS'
+        $script:H | Should -Not -Match ([regex]::Escape([System.Environment]::MachineName) + ' \|')
+    }
+    It 'records the log folder as the source when -LogPath points at copied logs' {
+        . (Join-Path -Path $PSScriptRoot -ChildPath 'TestHelpers.ps1')
+        $dir = New-ZkTestLogFolder -Destination (Join-Path $TestDrive 'copied') -Map @{ 'AppWorkload.log.template' = 'AppWorkload.log' }
+        $r = Invoke-ZkDeviceDiagnostic -LogPath $dir -DaysBack 30 -KnownCause $script:Db -SkipRegistry
+        $r.Computer | Should -Be 'Offline log analysis'
+        $r.Source | Should -Be ('Log source: ' + $dir)
+    }
     It 'creates the HTML file with print styles' { Test-Path -LiteralPath $script:F.Html | Should -BeTrue; $script:H | Should -Match '@media print' }
     It 'has no remote script/link/img and drops non-Learn source links' {
         Test-ZkOnlyNextLinkIsExternal -Html $script:H

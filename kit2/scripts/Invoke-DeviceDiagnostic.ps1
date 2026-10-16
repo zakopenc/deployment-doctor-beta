@@ -69,7 +69,7 @@
 
 .NOTES
     Name:        Invoke-DeviceDiagnostic.ps1
-    Version:     1.2.0 (2026-10-16)
+    Version:     1.2.1 (2026-10-16)
     Publisher:   ZakitPro (zakitpro.com), author Abderrazak Elbouchikhi (Zak). Support: hello@zakitpro.com
     Requires:    Windows PowerShell 5.1 or PowerShell 7.x. Local admin recommended (log folder ACL).
                  No modules, no network, no Graph.
@@ -123,7 +123,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$script:KitVersion = '1.2.0'
+$script:KitVersion = '1.2.1'
 $script:GuidPattern = '[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}'
 $script:SuccessCodes = @(0, 1641, 3010)   # MsiExec docs: 1641 and 3010 "indicate success"
 
@@ -611,6 +611,8 @@ function Invoke-ZkDeviceDiagnostic {
         Write-Warning -Message "Log folder not found: '$LogPath'. Check -LogPath, or run elevated on the device. The report will say 'No IME logs found' (KC-021)."
     }
     $logs = Get-ZkImeLogRecord -Path $LogPath -DaysBack $DaysBack
+    $defaultLogPath = Join-Path -Path ([System.Environment]::GetFolderPath('CommonApplicationData')) -ChildPath 'Microsoft\IntuneManagementExtension\Logs'
+    $offline = [bool]$SkipRegistry -or ($LogPath.TrimEnd('\', '/') -ne $defaultLogPath.TrimEnd('\', '/'))
     if (@($logs.Files).Count -eq 0) { $deviceSignals.Add('logs:none') }
 
     $tenantApps = @{}
@@ -683,7 +685,8 @@ function Invoke-ZkDeviceDiagnostic {
     [pscustomobject]@{
         KitVersion     = $script:KitVersion
         GeneratedLocal = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss zzz')
-        Computer       = [System.Environment]::MachineName
+        Computer       = $(if ($offline) { 'Offline log analysis' } else { [System.Environment]::MachineName })
+        Source         = $(if ($offline) { 'Log source: ' + $LogPath } else { 'This device: ' + [System.Environment]::MachineName })
         LogPath        = $LogPath
         LogFiles       = @($logs.Files)
         RecordCount    = @($logs.Records).Count
@@ -759,6 +762,10 @@ function ConvertTo-ZkDashboardHtml {
         Finding objects.
     .PARAMETER ExtraHtml
         Pre-escaped HTML appended after the findings table.
+    .PARAMETER Brand
+        Product name shown above the title.
+    .PARAMETER Banner
+        Plain-text notice shown under the header.
     .EXAMPLE
         ConvertTo-ZkDashboardHtml -Title 'Report' -Subtitle 'Sample' -Finding $rows
     .EXAMPLE
@@ -772,13 +779,16 @@ function ConvertTo-ZkDashboardHtml {
         [Parameter(Mandatory)][string]$Title,
         [Parameter()][string]$Subtitle,
         [Parameter()][AllowEmptyCollection()][object[]]$Finding = @(),
-        [Parameter()][string]$ExtraHtml = ''
+        [Parameter()][string]$ExtraHtml = '',
+        [Parameter()][string]$Brand = 'ZakitPro Deployment Doctor',
+        [Parameter()][string]$Banner = 'Read-only, local report. Not tested against a live tenant. Test in non-production first. This file makes no network requests.'
     )
     $enc = { param($x) [System.Net.WebUtility]::HtmlEncode([string]$x) }
     $label = @{ red = 'Critical'; yellow = 'Warning'; green = 'Passed'; grey = 'Info' }
     $count = @{ red = 0; yellow = 0; green = 0; grey = 0 }
     $statuses = New-Object -TypeName System.Collections.Generic.List[string]
     $rows = New-Object -TypeName System.Text.StringBuilder
+    $hasConf = @($Finding | Where-Object { $_.PSObject.Properties['Confidence'] -and -not [string]::IsNullOrWhiteSpace([string]$_.Confidence) }).Count -gt 0
     foreach ($f in @($Finding)) {
         $c = ConvertTo-ZkReportStatus -Value ([string]$f.Status)
         $count[$c]++
@@ -786,9 +796,9 @@ function ConvertTo-ZkDashboardHtml {
         if (-not $statuses.Contains($st)) { $statuses.Add($st) }
         $ev = & $enc $f.Evidence
         $evCell = if ([string]::IsNullOrWhiteSpace([string]$f.Evidence)) { '<span class="muted">None</span>' } else { '<details><summary>Show evidence</summary><pre>' + $ev + '</pre></details><pre class="print-ev">' + $ev + '</pre>' }
-        [void]$rows.Append('<tr data-sev="' + $c + '" data-st="' + (& $enc $st) + '"><td><span class="st st-' + $c + '" data-status="' + $c + '">' + $label[$c] + '</span></td><td>' + (& $enc $st) + '</td><td>' + (& $enc $f.Scope) + '</td><td>' + (& $enc $f.Check) + '</td><td>' + (& $enc $f.Finding) + '</td><td>' + $evCell + '</td><td>' + $f.NextHtml + '</td></tr>' + "`n")
+        [void]$rows.Append('<tr data-sev="' + $c + '" data-st="' + (& $enc $st) + '"><td><span class="st st-' + $c + '" data-status="' + $c + '">' + $label[$c] + '</span></td><td>' + (& $enc $st) + '</td>' + $(if ($hasConf) { '<td>' + $(if ($f.PSObject.Properties['Confidence']) { & $enc $f.Confidence } else { '' }) + '</td>' } else { '' }) + '<td>' + (& $enc $f.Scope) + '</td><td>' + (& $enc $f.Check) + '</td><td>' + (& $enc $f.Finding) + '</td><td>' + $evCell + '</td><td>' + $f.NextHtml + '</td></tr>' + "`n")
     }
-    if (@($Finding).Count -eq 0) { [void]$rows.Append('<tr><td colspan="7" class="muted">No checks produced output.</td></tr>') }
+    if (@($Finding).Count -eq 0) { [void]$rows.Append('<tr><td colspan="8" class="muted">No checks produced output.</td></tr>') }
     $scored = $count.red + $count.yellow + $count.green
     $score = if ($scored -gt 0) { [int][Math]::Round(100 * ($count.green + 0.5 * $count.yellow) / $scored) } else { 100 }
     $rawScore = $score
@@ -844,16 +854,16 @@ window.addEventListener("beforeprint",function(){for(var i=0;i<rows.length;i++){
     [void]$sb.Append('<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">')
     [void]$sb.Append('<meta http-equiv="Content-Security-Policy" content="default-src ''none''; style-src ''unsafe-inline''; script-src ''unsafe-inline''; img-src data:; base-uri ''none''; form-action ''none''">')
     [void]$sb.Append('<meta name="referrer" content="no-referrer"><title>' + (& $enc $Title) + '</title><style>' + $css + '</style></head><body><div class="wrap">')
-    [void]$sb.Append('<header class="top"><div><div class="brand">ZakitPro Deployment Doctor</div><h1>' + (& $enc $Title) + '</h1><div class="meta">' + (& $enc $Subtitle) + '</div></div>')
+    [void]$sb.Append('<header class="top"><div><div class="brand">' + (& $enc $Brand) + '</div><h1>' + (& $enc $Title) + '</h1><div class="meta">' + (& $enc $Subtitle) + '</div></div>')
     [void]$sb.Append('<button type="button" id="zk-theme" class="tg hidden-js" aria-label="Toggle dark or light theme">Toggle theme</button></header>')
-    [void]$sb.Append('<div class="banner"><b>Read-only, local report.</b> Not tested against a live tenant. Test in non-production first. This file makes no network requests.</div>')
+    [void]$sb.Append('<div class="banner">' + (& $enc $Banner) + '</div>')
     [void]$sb.Append('<section class="grid" aria-label="Summary"><div class="card scorecard" title="' + (& $enc $legend) + '"><div class="score"><div class="ring ' + $scoreClass + '" aria-label="Health score ' + $score + ' out of 100" data-capped="' + $(if ($capped) { 'true' } else { 'false' }) + '">' + $score + '</div><div><div class="k">Health score</div>' + $scoreNote + '</div></div><div class="legend" id="zk-legend">' + (& $enc $legend) + '</div></div>')
     foreach ($k in 'red', 'yellow', 'green', 'grey') { [void]$sb.Append('<div class="card ' + $k + '"><div class="k">' + $label[$k] + '</div><div class="v">' + $count[$k] + '</div></div>') }
     [void]$sb.Append('</section><h2>Findings</h2>')
     [void]$sb.Append('<div id="zk-filters" class="filters hidden-js" role="search"><label>Search<input id="zk-q" type="search" placeholder="Filter by any text"></label>')
     [void]$sb.Append('<label>Severity<select id="zk-sev"><option value="">All</option><option value="red">Critical</option><option value="yellow">Warning</option><option value="green">Passed</option><option value="grey">Info</option></select></label>')
     [void]$sb.Append('<label>Status<select id="zk-st"><option value="">All</option>' + $stOptions + '</select></label><span id="zk-count" class="muted" aria-live="polite"></span></div>')
-    [void]$sb.Append('<div class="tablewrap"><table id="zk-findings"><thead><tr><th>Severity</th><th>Status</th><th>Scope</th><th>Check</th><th>Finding</th><th>Evidence</th><th>Next step</th></tr></thead><tbody>')
+    [void]$sb.Append('<div class="tablewrap"><table id="zk-findings"><thead><tr><th>Severity</th><th>Status</th>' + $(if ($hasConf) { '<th>Confidence</th>' } else { '' }) + '<th>Scope</th><th>Check</th><th>Finding</th><th>Evidence</th><th>Next step</th></tr></thead><tbody>')
     [void]$sb.Append($rows.ToString())
     [void]$sb.Append('</tbody></table></div>')
     [void]$sb.Append($ExtraHtml)
@@ -897,9 +907,9 @@ function Export-ZkDeviceReport {
         @($lines) -join "`n"
     }
     $dash = New-Object -TypeName System.Collections.Generic.List[object]
-    foreach ($v in @($Report.DeviceVerdicts)) { $dash.Add([pscustomobject]@{ Status = 'High'; Scope = 'Device'; Check = $v.CauseId; Finding = $v.Title; Evidence = (& $vEv $v); NextHtml = (Get-ZkNextStepLink -Url @($v.Sources | ForEach-Object { $_.url }) -Code $v.CauseId) }) }
+    foreach ($v in @($Report.DeviceVerdicts)) { $dash.Add([pscustomobject]@{ Status = 'Fail'; Confidence = 'High'; Scope = 'Device'; Check = $v.CauseId; Finding = $v.Title; Evidence = (& $vEv $v); NextHtml = (Get-ZkNextStepLink -Url @($v.Sources | ForEach-Object { $_.url }) -Code $v.CauseId) }) }
     foreach ($a in @($Report.Apps)) {
-        foreach ($v in @($a.Verdicts)) { $dash.Add([pscustomobject]@{ Status = $v.Confidence; Scope = $a.Name; Check = $v.CauseId; Finding = $v.Title; Evidence = (& $vEv $v); NextHtml = (Get-ZkNextStepLink -Url @($v.Sources | ForEach-Object { $_.url }) -Code $v.CauseId) }) }
+        foreach ($v in @($a.Verdicts)) { $dash.Add([pscustomobject]@{ Status = $(if ($v.Confidence -eq 'High') { 'Fail' } else { 'Warn' }); Confidence = $v.Confidence; Scope = $a.Name; Check = $v.CauseId; Finding = $v.Title; Evidence = (& $vEv $v); NextHtml = (Get-ZkNextStepLink -Url @($v.Sources | ForEach-Object { $_.url }) -Code $v.CauseId) }) }
         if (@($a.Verdicts).Count -eq 0) {
             if (@($a.Signals) -contains 'final:detected') { $dash.Add([pscustomobject]@{ Status = 'Pass'; Scope = $a.Name; Check = 'Detection'; Finding = 'Detected on the last evaluation; no fault found.'; Evidence = ($a.Signals -join ', '); NextHtml = '<span class="next next-code">None needed</span>' }) }
             else { $dash.Add([pscustomobject]@{ Status = 'Info'; Scope = $a.Name; Check = 'Known causes'; Finding = 'No known cause matched. Read the timeline from the last exit code backwards.'; Evidence = ($a.Signals -join ', '); NextHtml = '<span class="next next-code">Read timeline</span>' }) }
@@ -923,7 +933,8 @@ function Export-ZkDeviceReport {
     }
     [void]$x.Append('<p class="muted">"(thread)" = line attributed to the app because it followed an app line on the same thread. Registry state names are community-decoded; undecoded values are shown raw.</p>')
     $imeText = if ($Report.Ime) { 'IME {0} {1}' -f $Report.Ime.State, $Report.Ime.Version } else { 'IME not checked (offline)' }
-    $doc = ConvertTo-ZkDashboardHtml -Title 'Win32 app device diagnostic' -Subtitle ('Kit 2 v{0} | {1} | generated {2} | {3} | log files: {4} | records: {5}' -f $Report.KitVersion, $Report.Computer, $Report.GeneratedLocal, $imeText, @($Report.LogFiles).Count, $Report.RecordCount) -Finding $dash.ToArray() -ExtraHtml $x.ToString()
+    $src = if ($Report.PSObject.Properties['Source']) { $Report.Source } else { $Report.Computer }
+    $doc = ConvertTo-ZkDashboardHtml -Brand 'ZakitPro Win32 App Deployment Doctor' -Banner 'Read-only, local report built from IME logs and registry state. Not yet run on a real device: check the verdicts against the timeline. This file makes no network requests.' -Title 'Win32 app device diagnostic' -Subtitle ('Kit 2 v{0} | {1} | generated {2} | {3} | log files: {4} | records: {5}' -f $Report.KitVersion, $src, $Report.GeneratedLocal, $imeText, @($Report.LogFiles).Count, $Report.RecordCount) -Finding $dash.ToArray() -ExtraHtml $x.ToString()
     Set-Content -LiteralPath $html -Value $doc -Encoding UTF8
     [pscustomobject]@{ Json = $json; Html = $html }
 }

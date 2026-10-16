@@ -1,0 +1,40 @@
+{
+  "_note": "FAKE sample data for -SamplePath practice runs. Not from a real device. Names and IDs are placeholders.",
+  "computer": "CONTOSO-DP-01",
+  "os": {
+    "Caption": "Windows 11 Enterprise (sample)",
+    "BuildNumber": "26100"
+  },
+  "imeService": "Running",
+  "registry": {
+    "HKLM:\\SOFTWARE\\Microsoft\\Provisioning\\AutopilotSettings": {
+      "CloudAssignedTenantDomain": "contoso.example",
+      "OrchestrationContext": "DevicePreparation"
+    },
+    "HKLM:\\SOFTWARE\\Microsoft\\Provisioning\\InitialProvisioning": {
+      "Progress": "{\"phases\": [{\"name\": \"DeviceSetup\", \"status\": \"Completed\"}, {\"name\": \"Apps\", \"status\": \"Failed\", \"items\": [{\"displayName\": \"Contoso VPN (FAKE)\", \"state\": \"Error\", \"errorCode\": \"0x80070001\"}, {\"displayName\": \"Fabrikam Notes (FAKE)\", \"state\": \"Completed\"}]}]}"
+    },
+    "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{SAMPLE-IME}": {
+      "DisplayName": "Microsoft Intune Management Extension",
+      "DisplayVersion": "1.101.105.0"
+    }
+  },
+  "events": [
+    {
+      "LogName": "Microsoft-Windows-Provisioning-Bootstrapper/Operational",
+      "Id": 1,
+      "Level": 4,
+      "LevelDisplayName": "Information",
+      "Message": "Device preparation started (sample).",
+      "MinutesAgo": 55
+    },
+    {
+      "LogName": "Microsoft-Windows-Provisioning-Bootstrapper/Operational",
+      "Id": 2,
+      "Level": 2,
+      "LevelDisplayName": "Error",
+      "Message": "App install reported an error: Contoso VPN (FAKE) 0x80070001 (sample).",
+      "MinutesAgo": 20
+    }
+  ]
+}

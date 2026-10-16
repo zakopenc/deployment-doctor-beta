@@ -12,7 +12,7 @@ $root = Split-Path -Path $PSScriptRoot -Parent
 . (Join-Path -Path $root -ChildPath 'kit2/scripts/Invoke-TenantPreCheck.ps1')
 $db = Get-Content -LiteralPath (Join-Path -Path $root -ChildPath 'kit2/scripts/known-causes.json') -Raw | ConvertFrom-Json
 $report = [pscustomobject]@{
-    GeneratedLocal = '2026-01-15 09:00:00 (SAMPLE - FAKE DATA)'; KitVersion = '1.2.0'; Errors = @()
+    GeneratedLocal = '2026-01-15 09:00:00 (SAMPLE - FAKE DATA)'; KitVersion = '1.2.1'; Errors = @()
     Apps = @(
         [pscustomobject]@{ DisplayName = 'Contoso Viewer (FAKE)'; Id = 'sample-app-0001'; RunAs = 'system'; Assignments = 'required (group:SG-Contoso-Devices)'; InstallSummary = 'installed 41, failed 6, pending 2'; DetectionRuleCount = 1 },
         [pscustomobject]@{ DisplayName = 'Fabrikam Agent (FAKE)'; Id = 'sample-app-0002'; RunAs = 'user'; Assignments = 'required (group:SG-Fabrikam-Users)'; InstallSummary = 'installed 18, failed 0, pending 1'; DetectionRuleCount = 2 },

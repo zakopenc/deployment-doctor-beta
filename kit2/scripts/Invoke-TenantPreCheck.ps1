@@ -67,7 +67,7 @@
 
 .NOTES
     Name:        Invoke-TenantPreCheck.ps1
-    Version:     1.2.0 (2026-10-16)
+    Version:     1.2.1 (2026-10-16)
     Publisher:   ZakitPro (zakitpro.com), author Abderrazak Elbouchikhi (Zak). Support: hello@zakitpro.com
     Requires:    Windows PowerShell 5.1 or PowerShell 7.x; Microsoft.Graph.Authentication 2.x;
                  an Intune role that can read apps (for example Intune Read Only Operator).
@@ -117,7 +117,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$script:KitVersion = '1.2.0'
+$script:KitVersion = '1.2.1'
 $script:GraphBase = 'https://graph.microsoft.com/beta'
 
 function Invoke-ZkGraphGet {
@@ -621,6 +621,10 @@ function ConvertTo-ZkDashboardHtml {
         Finding objects.
     .PARAMETER ExtraHtml
         Pre-escaped HTML appended after the findings table.
+    .PARAMETER Brand
+        Product name shown above the title.
+    .PARAMETER Banner
+        Plain-text notice shown under the header.
     .EXAMPLE
         ConvertTo-ZkDashboardHtml -Title 'Report' -Subtitle 'Sample' -Finding $rows
     .EXAMPLE
@@ -634,13 +638,16 @@ function ConvertTo-ZkDashboardHtml {
         [Parameter(Mandatory)][string]$Title,
         [Parameter()][string]$Subtitle,
         [Parameter()][AllowEmptyCollection()][object[]]$Finding = @(),
-        [Parameter()][string]$ExtraHtml = ''
+        [Parameter()][string]$ExtraHtml = '',
+        [Parameter()][string]$Brand = 'ZakitPro Deployment Doctor',
+        [Parameter()][string]$Banner = 'Read-only, local report. Not tested against a live tenant. Test in non-production first. This file makes no network requests.'
     )
     $enc = { param($x) [System.Net.WebUtility]::HtmlEncode([string]$x) }
     $label = @{ red = 'Critical'; yellow = 'Warning'; green = 'Passed'; grey = 'Info' }
     $count = @{ red = 0; yellow = 0; green = 0; grey = 0 }
     $statuses = New-Object -TypeName System.Collections.Generic.List[string]
     $rows = New-Object -TypeName System.Text.StringBuilder
+    $hasConf = @($Finding | Where-Object { $_.PSObject.Properties['Confidence'] -and -not [string]::IsNullOrWhiteSpace([string]$_.Confidence) }).Count -gt 0
     foreach ($f in @($Finding)) {
         $c = ConvertTo-ZkReportStatus -Value ([string]$f.Status)
         $count[$c]++
@@ -648,9 +655,9 @@ function ConvertTo-ZkDashboardHtml {
         if (-not $statuses.Contains($st)) { $statuses.Add($st) }
         $ev = & $enc $f.Evidence
         $evCell = if ([string]::IsNullOrWhiteSpace([string]$f.Evidence)) { '<span class="muted">None</span>' } else { '<details><summary>Show evidence</summary><pre>' + $ev + '</pre></details><pre class="print-ev">' + $ev + '</pre>' }
-        [void]$rows.Append('<tr data-sev="' + $c + '" data-st="' + (& $enc $st) + '"><td><span class="st st-' + $c + '" data-status="' + $c + '">' + $label[$c] + '</span></td><td>' + (& $enc $st) + '</td><td>' + (& $enc $f.Scope) + '</td><td>' + (& $enc $f.Check) + '</td><td>' + (& $enc $f.Finding) + '</td><td>' + $evCell + '</td><td>' + $f.NextHtml + '</td></tr>' + "`n")
+        [void]$rows.Append('<tr data-sev="' + $c + '" data-st="' + (& $enc $st) + '"><td><span class="st st-' + $c + '" data-status="' + $c + '">' + $label[$c] + '</span></td><td>' + (& $enc $st) + '</td>' + $(if ($hasConf) { '<td>' + $(if ($f.PSObject.Properties['Confidence']) { & $enc $f.Confidence } else { '' }) + '</td>' } else { '' }) + '<td>' + (& $enc $f.Scope) + '</td><td>' + (& $enc $f.Check) + '</td><td>' + (& $enc $f.Finding) + '</td><td>' + $evCell + '</td><td>' + $f.NextHtml + '</td></tr>' + "`n")
     }
-    if (@($Finding).Count -eq 0) { [void]$rows.Append('<tr><td colspan="7" class="muted">No checks produced output.</td></tr>') }
+    if (@($Finding).Count -eq 0) { [void]$rows.Append('<tr><td colspan="8" class="muted">No checks produced output.</td></tr>') }
     $scored = $count.red + $count.yellow + $count.green
     $score = if ($scored -gt 0) { [int][Math]::Round(100 * ($count.green + 0.5 * $count.yellow) / $scored) } else { 100 }
     $rawScore = $score
@@ -706,16 +713,16 @@ window.addEventListener("beforeprint",function(){for(var i=0;i<rows.length;i++){
     [void]$sb.Append('<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">')
     [void]$sb.Append('<meta http-equiv="Content-Security-Policy" content="default-src ''none''; style-src ''unsafe-inline''; script-src ''unsafe-inline''; img-src data:; base-uri ''none''; form-action ''none''">')
     [void]$sb.Append('<meta name="referrer" content="no-referrer"><title>' + (& $enc $Title) + '</title><style>' + $css + '</style></head><body><div class="wrap">')
-    [void]$sb.Append('<header class="top"><div><div class="brand">ZakitPro Deployment Doctor</div><h1>' + (& $enc $Title) + '</h1><div class="meta">' + (& $enc $Subtitle) + '</div></div>')
+    [void]$sb.Append('<header class="top"><div><div class="brand">' + (& $enc $Brand) + '</div><h1>' + (& $enc $Title) + '</h1><div class="meta">' + (& $enc $Subtitle) + '</div></div>')
     [void]$sb.Append('<button type="button" id="zk-theme" class="tg hidden-js" aria-label="Toggle dark or light theme">Toggle theme</button></header>')
-    [void]$sb.Append('<div class="banner"><b>Read-only, local report.</b> Not tested against a live tenant. Test in non-production first. This file makes no network requests.</div>')
+    [void]$sb.Append('<div class="banner">' + (& $enc $Banner) + '</div>')
     [void]$sb.Append('<section class="grid" aria-label="Summary"><div class="card scorecard" title="' + (& $enc $legend) + '"><div class="score"><div class="ring ' + $scoreClass + '" aria-label="Health score ' + $score + ' out of 100" data-capped="' + $(if ($capped) { 'true' } else { 'false' }) + '">' + $score + '</div><div><div class="k">Health score</div>' + $scoreNote + '</div></div><div class="legend" id="zk-legend">' + (& $enc $legend) + '</div></div>')
     foreach ($k in 'red', 'yellow', 'green', 'grey') { [void]$sb.Append('<div class="card ' + $k + '"><div class="k">' + $label[$k] + '</div><div class="v">' + $count[$k] + '</div></div>') }
     [void]$sb.Append('</section><h2>Findings</h2>')
     [void]$sb.Append('<div id="zk-filters" class="filters hidden-js" role="search"><label>Search<input id="zk-q" type="search" placeholder="Filter by any text"></label>')
     [void]$sb.Append('<label>Severity<select id="zk-sev"><option value="">All</option><option value="red">Critical</option><option value="yellow">Warning</option><option value="green">Passed</option><option value="grey">Info</option></select></label>')
     [void]$sb.Append('<label>Status<select id="zk-st"><option value="">All</option>' + $stOptions + '</select></label><span id="zk-count" class="muted" aria-live="polite"></span></div>')
-    [void]$sb.Append('<div class="tablewrap"><table id="zk-findings"><thead><tr><th>Severity</th><th>Status</th><th>Scope</th><th>Check</th><th>Finding</th><th>Evidence</th><th>Next step</th></tr></thead><tbody>')
+    [void]$sb.Append('<div class="tablewrap"><table id="zk-findings"><thead><tr><th>Severity</th><th>Status</th>' + $(if ($hasConf) { '<th>Confidence</th>' } else { '' }) + '<th>Scope</th><th>Check</th><th>Finding</th><th>Evidence</th><th>Next step</th></tr></thead><tbody>')
     [void]$sb.Append($rows.ToString())
     [void]$sb.Append('</tbody></table></div>')
     [void]$sb.Append($ExtraHtml)
@@ -766,7 +773,8 @@ function Export-ZkTenantReport {
     foreach ($fi in $findings) {
         $urls = @(); $ct = ''
         if ($checkInfo.ContainsKey($fi.CheckId)) { $urls = @($checkInfo[$fi.CheckId].sources | ForEach-Object { $_.url }); $ct = $checkInfo[$fi.CheckId].title }
-        $dash.Add([pscustomobject]@{ Status = $fi.Severity; Scope = $fi.AppName; Check = ('{0} {1}' -f $fi.CheckId, $ct).Trim(); Finding = $fi.Message; Evidence = $fi.Evidence; NextHtml = (Get-ZkNextStepLink -Url $urls -Code $fi.CheckId) })
+        $st2 = switch ($fi.Severity) { 'High' { 'Fail (High)' } 'Medium' { 'Warn (Medium)' } 'Low' { 'Warn (Low)' } default { 'Info' } }
+        $dash.Add([pscustomobject]@{ Status = $st2; Confidence = $(if ($fi.Message -match '(?i)heuristic') { 'Heuristic' } else { '' }); Scope = $fi.AppName; Check = ('{0} {1}' -f $fi.CheckId, $ct).Trim(); Finding = $fi.Message; Evidence = $fi.Evidence; NextHtml = (Get-ZkNextStepLink -Url $urls -Code $fi.CheckId) })
     }
     foreach ($a in @($Report.Apps | Sort-Object -Property DisplayName)) {
         $hit = @($findings | Where-Object { ($_.AppId -eq $a.Id -or $_.AppName -eq $a.DisplayName) -and $_.Severity -ne 'Info' })
@@ -779,7 +787,7 @@ function Export-ZkTenantReport {
     if (@($Report.Findings).Count -eq 0) { $extra += '<p>No findings for the apps in scope.</p>' }
     if (@($Report.Errors).Count -gt 0) { $extra += '<h2>Could not read</h2><ul>' + ((@($Report.Errors) | ForEach-Object { '<li>' + (& $e $_) + '</li>' }) -join '') + '</ul>' }
     $extra += '<h2>Apps</h2><div class="tablewrap"><table><thead><tr><th>App</th><th>ID</th><th>Context</th><th>Assignments</th><th>Install summary (devices)</th><th>Detection rules</th></tr></thead><tbody>' + ($appRows -join "`n") + '</tbody></table></div>'
-    $doc = ConvertTo-ZkDashboardHtml -Title 'Win32 app tenant pre-check' -Subtitle ('Kit 2 v{0} | generated {1} (device local time) | read-only Graph (GET only) | apps checked: {2} | findings: {3} | known-causes {4}' -f $Report.KitVersion, $Report.GeneratedLocal, @($Report.Apps).Count, @($Report.Findings).Count, $KnownCause.version) -Finding $dash.ToArray() -ExtraHtml $extra
+    $doc = ConvertTo-ZkDashboardHtml -Brand 'ZakitPro Win32 App Deployment Doctor' -Title 'Win32 app tenant pre-check' -Subtitle ('Kit 2 v{0} | generated {1} (device local time) | read-only Graph (GET only) | apps checked: {2} | findings: {3} | known-causes {4}' -f $Report.KitVersion, $Report.GeneratedLocal, @($Report.Apps).Count, @($Report.Findings).Count, $KnownCause.version) -Finding $dash.ToArray() -ExtraHtml $extra
     Set-Content -LiteralPath $html -Value $doc -Encoding UTF8
     [pscustomobject]@{ Json = $json; Html = $html }
 }
