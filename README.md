@@ -8,6 +8,41 @@ Read-only PowerShell diagnostics for Windows Autopilot / Autopilot device prepar
 
 Join the Deployment Doctor waitlist: https://zakitpro.com/doctor/
 
+## How this differs from Pre-Check Lite
+The free [Pre-Check Lite](https://zakitpro.com/doctor/) is one script that runs 3 read-only Device Prep tenant checks (service principal, device group, local admin) and prints PASS/FAIL/WARN/SKIP lines. This beta is the full script set from both kits: 2 tenant pre-checks and 2 on-device diagnostics, with HTML/JSON reports.
+
+## Quick start
+**PowerShell:** Windows PowerShell 5.1 or PowerShell 7.x (every script has `#Requires -Version 5.1`). The device diagnostics run on the Windows device itself. Kit 1's device script is written for Windows PowerShell 5.1, so it also works at Shift+F10 during OOBE.
+
+**Graph module (tenant scripts only):**
+```powershell
+Install-Module Microsoft.Graph.Authentication -Scope CurrentUser -MinimumVersion 2.0
+```
+Sign in with an account that can read Intune and Entra (for example Global Reader plus an Intune read-only role). If execution policy blocks a script, review it, then `Unblock-File` that file. Don't set the policy to Bypass globally.
+
+**Run:**
+```powershell
+# Kit 1 tenant pre-check (Autopilot / Device Prep). Report folder default: current folder
+.\kit1\scripts\Invoke-TenantPreCheck.ps1 -TenantId contoso.onmicrosoft.com -OutputPath C:\Temp\DD
+
+# Kit 1 device diagnostic. Run elevated (or as SYSTEM at Shift+F10); without admin it warns and some logs/keys are unreadable.
+# Report folder default: $env:TEMP. -ExpectedMode Any|AutopilotV1|DevicePrep
+.\kit1\scripts\Invoke-DeviceDiagnostic.ps1 -ExpectedMode DevicePrep -OutputPath D:\
+
+# Kit 2 tenant pre-check (Win32 apps). Report folder default: .\ZakitPro-Kit2-Reports
+.\kit2\scripts\Invoke-TenantPreCheck.ps1 -TenantId contoso.onmicrosoft.com -AppNameFilter "Contoso" -OutputPath C:\Temp\DD
+
+# Kit 2 device diagnostic. Local admin recommended (the IME log folder ACL). Report folder default: %TEMP%\ZakitPro-Kit2
+.\kit2\scripts\Invoke-DeviceDiagnostic.ps1 -OutputPath C:\Temp\DD
+# Offline, on logs copied from another device, cross-referenced with the Kit 2 tenant report:
+.\kit2\scripts\Invoke-DeviceDiagnostic.ps1 -LogPath D:\Collected\Logs -SkipRegistry -TenantReportPath C:\Temp\DD\Kit2-TenantPreCheck-<stamp>.json
+```
+Each tenant script also takes `-SkipConnect`, which reuses an existing `Connect-MgGraph` session. All four take `-PassThru`.
+
+**Reports:** each run writes a timestamped JSON report and an HTML report to `-OutputPath`: `TenantPreCheck-*`, `DeviceDiagnostic-*`, `Kit2-TenantPreCheck-*` or `Kit2-DeviceDiagnostic-*`. Add `-NoHtml` to write only the JSON.
+
+**Report results:** open a [Test report](https://github.com/zakopenc/deployment-doctor-beta/issues/new?template=test-report.md). Before you post, remove tenant names, tenant/device/user IDs, UPNs and any secrets, and don't attach unredacted reports.
+
 ## What is in this repo
 ```
 kit1/scripts/Invoke-TenantPreCheck.ps1     Kit 1 tenant pre-check (Graph, read-only)
